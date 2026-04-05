@@ -214,12 +214,6 @@ app.run(debug=False, threaded=True, port=5001)
 
 ---
 
-## 🙏 Inspired by
-
-This lab follows the same progressive, step-by-step teaching pattern as the **Meal Planner Agent Lab** from the *Fundamentals of LLMs & Agents* course. Each step adds exactly one new concept and lets you interact with it before moving on.
-
----
-
 <div align="center">
 
 **Built with ❤️ for learners who want to understand the web, not just use it.**
