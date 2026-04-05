@@ -157,7 +157,7 @@ a{color:#60a5fa;text-decoration:none}
 .gf-pill.active{background:#fbbf24}
 
 /* Main stage: two halves */
-.gf-stage{flex:1;display:flex;overflow:hidden;position:relative}
+.gf-stage{flex:1;display:flex;overflow:hidden}
 .gf-side{flex:37;display:flex;flex-direction:column;padding:20px;overflow-y:auto}
 .gf-client{background:#080e1a}
 .gf-server{background:#040e08}
@@ -176,13 +176,14 @@ a{color:#60a5fa;text-decoration:none}
 .gf-card-body{font-size:12px;color:#8b949e;margin-top:6px;line-height:1.6}
 .gf-card-code{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px;margin-top:8px;font-family:'Cascadia Code','Fira Code',monospace;font-size:12px;color:#c9d1d9;line-height:1.5;white-space:pre-wrap}
 
-/* Animated arrow that flies across the gap */
-.gf-arrow-track{position:absolute;top:0;bottom:0;left:37%;width:0;pointer-events:none;z-index:10}
-.gf-arrow{position:absolute;left:-60px;width:120px;text-align:center;opacity:0;transition:all .6s}
+/* Arrow column between the two sides */
+.gf-arrow-col{width:90px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:#0b0e14;border-left:1px solid #30363d;border-right:1px solid #30363d;padding:12px 0;overflow:hidden}
+.gf-arrow{text-align:center;opacity:0;transition:opacity .5s;padding:6px 0;flex-shrink:0}
 .gf-arrow.fly{opacity:1}
-.gf-arrow-icon{font-size:36px;font-weight:700;display:block;line-height:1}
-.gf-arrow-label{font-size:10px;color:#8b949e;margin-top:2px;white-space:nowrap}
-.gf-arrow-badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:monospace}
+.gf-arrow-icon{font-size:32px;font-weight:700;line-height:1}
+.gf-arrow-label{font-size:9px;color:#8b949e;white-space:nowrap;margin-bottom:2px}
+.gf-arrow-badge{display:block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;font-family:monospace;margin-top:2px}
+.gf-arrow-spacer{flex:1}
 @keyframes arrowPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
 .gf-arrow.fly .gf-arrow-icon{animation:arrowPulse .8s infinite}
 
@@ -1927,32 +1928,41 @@ function buildGameFlowHTML() {
         </div>
       </div>
 
-      <!-- ARROW TRACK (sits on top, in the center) -->
-      <div class="gf-arrow-track">
-        <!-- GET request: Browser → Server (left to right) -->
-        <div class="gf-arrow" id="gfArrowGet" style="top:12%">
-          <div class="gf-arrow-label">Browser &rarr; Server</div>
+      <!-- ARROW COLUMN between browser and server -->
+      <div class="gf-arrow-col">
+        <div class="gf-arrow-spacer"></div>
+
+        <!-- GET request: Browser → Server -->
+        <div class="gf-arrow" id="gfArrowGet">
+          <div class="gf-arrow-label">Browser</div>
           <div class="gf-arrow-icon" style="color:#4ade80">&rarr;</div>
           <div class="gf-arrow-badge" style="background:#14532d;color:#86efac">GET /</div>
         </div>
-        <!-- GET response: Server → Browser (right to left) -->
-        <div class="gf-arrow" id="gfArrowHtml" style="top:22%">
-          <div class="gf-arrow-label">Server &rarr; Browser</div>
+
+        <!-- GET response: Server → Browser -->
+        <div class="gf-arrow" id="gfArrowHtml">
+          <div class="gf-arrow-label">Server</div>
           <div class="gf-arrow-icon" style="color:#60a5fa">&larr;</div>
-          <div class="gf-arrow-badge" style="background:#1e3a5f;color:#93c5fd">200 OK + HTML</div>
+          <div class="gf-arrow-badge" style="background:#1e3a5f;color:#93c5fd">HTML+CSS+JS</div>
         </div>
-        <!-- POST request: Browser → Server (left to right) -->
-        <div class="gf-arrow" id="gfArrowReq" style="top:50%">
-          <div class="gf-arrow-label">Browser &rarr; Server</div>
+
+        <div class="gf-arrow-spacer"></div>
+
+        <!-- POST request: Browser → Server -->
+        <div class="gf-arrow" id="gfArrowReq">
+          <div class="gf-arrow-label">Browser</div>
           <div class="gf-arrow-icon" style="color:#f87171">&rarr;</div>
-          <div class="gf-arrow-badge" style="background:#7f1d1d;color:#fca5a5">POST /api/cart</div>
+          <div class="gf-arrow-badge" style="background:#7f1d1d;color:#fca5a5">POST /cart</div>
         </div>
-        <!-- POST response: Server → Browser (right to left) -->
-        <div class="gf-arrow" id="gfArrowRes" style="top:68%">
-          <div class="gf-arrow-label">Server &rarr; Browser</div>
+
+        <!-- POST response: Server → Browser -->
+        <div class="gf-arrow" id="gfArrowRes">
+          <div class="gf-arrow-label">Server</div>
           <div class="gf-arrow-icon" style="color:#4ade80">&larr;</div>
-          <div class="gf-arrow-badge" style="background:#14532d;color:#86efac">201 Created + JSON</div>
+          <div class="gf-arrow-badge" style="background:#14532d;color:#86efac">201 + JSON</div>
         </div>
+
+        <div class="gf-arrow-spacer"></div>
       </div>
 
       <!-- RIGHT: SERVER -->
