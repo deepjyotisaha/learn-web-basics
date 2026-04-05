@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Fundamentals Lab</title>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0f1117;color:#e2e8f0;line-height:1.6;overflow-x:hidden}
+a{color:#60a5fa;text-decoration:none}
+
+/* ── LAYOUT ───────────────────────────────────────────────── */
+.app{display:flex;height:100vh}
+.sidebar{width:280px;min-width:280px;background:#161b22;border-right:1px solid #30363d;overflow-y:auto;padding:16px 0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:#161b22;border-bottom:1px solid #30363d;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.topbar h1{font-size:14px;font-weight:600;color:#8b949e}
+.topbar .step-title{font-size:18px;font-weight:700;color:#e2e8f0}
+.content-area{flex:1;overflow-y:auto;padding:32px;display:flex;gap:32px}
+.learn-panel{flex:1;max-width:600px;min-width:400px}
+.demo-panel{flex:1;background:#161b22;border-radius:12px;border:1px solid #30363d;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── SIDEBAR ──────────────────────────────────────────────── */
+.sidebar h2{font-size:13px;color:#8b949e;padding:8px 20px;text-transform:uppercase;letter-spacing:.5px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;transition:background .15s;font-size:14px;border-left:3px solid transparent}
+.nav-item:hover{background:#1c2333}
+.nav-item.active{background:#1c2333;border-left-color:#60a5fa;color:#60a5fa}
+.nav-item.locked{opacity:.4;cursor:not-allowed}
+.nav-item .num{width:24px;height:24px;border-radius:50%;background:#30363d;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.nav-item.active .num{background:#60a5fa;color:#0f1117}
+.nav-item.done .num{background:#22c55e;color:#0f1117}
+
+/* ── LEARN PANEL ──────────────────────────────────────────── */
+.learn-panel h2{font-size:24px;font-weight:700;margin-bottom:8px}
+.learn-panel .subtitle{color:#8b949e;font-size:14px;margin-bottom:24px}
+.concept-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px;margin-bottom:16px}
+.concept-card h3{font-size:16px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.concept-card p,.concept-card ul,.concept-card li{font-size:14px;color:#b0bac5}
+.concept-card ul{padding-left:20px;margin-top:8px}
+.concept-card li{margin-bottom:6px}
+.concept-card code{background:#1e2736;padding:2px 6px;border-radius:4px;font-size:13px;color:#7dd3fc;font-family:'Cascadia Code','Fira Code',monospace}
+.concept-card .analogy{background:#1a2332;border-left:3px solid #f59e0b;padding:12px 16px;border-radius:0 8px 8px 0;margin-top:12px;font-size:13px;color:#fbbf24}
+.concept-card .analogy strong{color:#f59e0b}
+.key-point{background:#0d2847;border:1px solid #1e4976;border-radius:8px;padding:16px;margin-top:12px;font-size:13px;color:#93c5fd}
+.key-point strong{color:#60a5fa}
+
+/* table inside concept cards */
+.concept-card table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+.concept-card th{text-align:left;padding:8px 10px;background:#1e2736;color:#8b949e;font-weight:600;border-bottom:1px solid #30363d}
+.concept-card td{padding:8px 10px;border-bottom:1px solid #1e2736;color:#b0bac5}
+.concept-card td code{font-size:12px}
+
+/* ── DEMO PANEL ───────────────────────────────────────────── */
+.demo-header{padding:12px 16px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between}
+.demo-header h3{font-size:14px;font-weight:600;color:#8b949e}
+.demo-body{flex:1;overflow-y:auto;padding:16px}
+.demo-body pre{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:16px;font-family:'Cascadia Code','Fira Code',monospace;font-size:13px;line-height:1.7;white-space:pre-wrap;word-wrap:break-word;color:#c9d1d9;overflow-x:auto}
+.demo-body .req-line{color:#7ee787}
+.demo-body .res-line{color:#79c0ff}
+.demo-body .header-line{color:#8b949e}
+.demo-body .json-key{color:#ff7b72}
+.demo-body .json-val{color:#a5d6ff}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-primary{background:#2563eb;color:#fff}.btn-primary:hover{background:#3b82f6}
+.btn-success{background:#16a34a;color:#fff}.btn-success:hover{background:#22c55e}
+.btn-danger{background:#dc2626;color:#fff}.btn-danger:hover{background:#ef4444}
+.btn-outline{background:transparent;border:1px solid #30363d;color:#8b949e}.btn-outline:hover{border-color:#60a5fa;color:#60a5fa}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-group{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+
+/* Method badges */
+.method-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:monospace}
+.method-GET{background:#16a34a22;color:#4ade80;border:1px solid #16a34a55}
+.method-POST{background:#2563eb22;color:#60a5fa;border:1px solid #2563eb55}
+.method-PUT{background:#d9770622;color:#fb923c;border:1px solid #d9770655}
+.method-DELETE{background:#dc262622;color:#f87171;border:1px solid #dc262655}
+
+/* Live editor */
+.editor-wrap{border:1px solid #30363d;border-radius:8px;overflow:hidden;margin-top:12px}
+.editor-tabs{display:flex;background:#161b22;border-bottom:1px solid #30363d}
+.editor-tab{padding:8px 16px;font-size:12px;cursor:pointer;color:#8b949e;border-bottom:2px solid transparent}
+.editor-tab.active{color:#e2e8f0;border-bottom-color:#60a5fa}
+.editor-textarea{width:100%;min-height:320px;background:#0d1117;color:#c9d1d9;border:none;padding:12px;font-family:'Cascadia Code','Fira Code',monospace;font-size:13px;line-height:1.6;resize:vertical}
+.editor-textarea:focus{outline:none}
+.preview-frame{width:100%;min-height:350px;background:#fff;border:none;border-radius:0 0 8px 8px}
+
+/* Timeline / flow diagram */
+.flow-diagram{display:flex;flex-direction:column;gap:0;margin-top:16px}
+.flow-step{display:flex;align-items:flex-start;gap:12px;position:relative;padding-bottom:16px}
+.flow-step:not(:last-child)::before{content:'';position:absolute;left:15px;top:32px;bottom:0;width:2px;background:#30363d}
+.flow-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;z-index:1}
+.flow-dot.blue{background:#1e3a5f;border:2px solid #3b82f6}
+.flow-dot.green{background:#14532d;border:2px solid #22c55e}
+.flow-dot.orange{background:#431407;border:2px solid #f97316}
+.flow-dot.purple{background:#2e1065;border:2px solid #a855f7}
+.flow-dot.red{background:#450a0a;border:2px solid #ef4444}
+.flow-content{flex:1}
+.flow-content h4{font-size:14px;font-weight:600;margin-bottom:2px}
+.flow-content p{font-size:13px;color:#8b949e}
+
+/* Tech stack cards */
+.tech-row{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+.tech-card{flex:1;min-width:140px;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;text-align:center}
+.tech-card .era{font-size:11px;color:#8b949e;margin-bottom:4px}
+.tech-card .tech-name{font-size:14px;font-weight:700;margin-bottom:4px}
+.tech-card .tech-desc{font-size:12px;color:#8b949e}
+
+/* Response viewer */
+.response-viewer{margin-top:12px}
+.response-viewer .status{font-size:13px;font-weight:600;margin-bottom:8px}
+.response-viewer .status.ok{color:#4ade80}
+.response-viewer .status.err{color:#f87171}
+
+/* Step navigation */
+.step-nav{display:flex;gap:12px;padding:16px 24px;border-top:1px solid #30363d;background:#161b22;justify-content:space-between}
+
+/* progress bar */
+.progress-bar{height:3px;background:#30363d;margin:0}
+.progress-fill{height:100%;background:linear-gradient(90deg,#2563eb,#7c3aed);transition:width .3s}
+
+/* Architecture diagram */
+.arch-diagram{background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:20px;margin-top:16px;text-align:center}
+.arch-row{display:flex;justify-content:center;gap:16px;margin:8px 0;flex-wrap:wrap}
+.arch-box{padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;min-width:110px}
+.arch-box.browser{background:#1e3a5f;border:1px solid #3b82f6;color:#93c5fd}
+.arch-box.server{background:#14532d;border:1px solid #22c55e;color:#86efac}
+.arch-box.db{background:#431407;border:1px solid #f97316;color:#fed7aa}
+.arch-box.api{background:#2e1065;border:1px solid #a855f7;color:#d8b4fe}
+.arch-box.cdn{background:#164e63;border:1px solid #06b6d4;color:#a5f3fc}
+.arch-arrow{color:#8b949e;font-size:20px;display:flex;align-items:center}
+
+/* Accordion (Step 2) */
+.accordion{background:#0d1117;border:1px solid #30363d;border-radius:10px;overflow:hidden}
+.accordion-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer;font-size:13px;font-weight:600;color:#e2e8f0;transition:background .15s;user-select:none}
+.accordion-header:hover{background:#1c2333}
+.accordion-chevron{font-size:10px;color:#8b949e;transition:transform .25s}
+.accordion-header.open .accordion-chevron{transform:rotate(180deg)}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;padding:0 16px}
+.accordion-body.open{max-height:600px;padding:12px 16px 16px}
+
+/* Language code blocks (Step 7) */
+.lang-block{white-space:pre-wrap;word-wrap:break-word;overflow-x:auto;font-family:'Cascadia Code','Fira Code',monospace}
+
+/* ═══ STEP 10: GAME-LIKE FULLSCREEN FLOW ═══ */
+.flow-overlay{position:fixed;inset:0;background:#0b0e14;z-index:1000;display:flex;flex-direction:column;opacity:0;transition:opacity .4s;pointer-events:none}
+.flow-overlay.visible{opacity:1;pointer-events:all}
+
+/* Top bar */
+.gf-topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 24px;border-bottom:1px solid #30363d;background:#0f1117}
+.gf-topbar h2{font-size:16px;font-weight:700;color:#e2e8f0}
+.gf-step-pills{display:flex;gap:4px}
+.gf-pill{width:28px;height:6px;border-radius:3px;background:#30363d;transition:background .3s}
+.gf-pill.done{background:#22c55e}
+.gf-pill.active{background:#fbbf24}
+
+/* Main stage: two halves */
+.gf-stage{flex:1;display:flex;overflow:hidden;position:relative}
+.gf-side{flex:37;display:flex;flex-direction:column;padding:20px;overflow-y:auto}
+.gf-client{background:#080e1a}
+.gf-server{background:#040e08}
+
+/* Side headers */
+.gf-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.gf-header-icon{font-size:36px}
+.gf-header-title{font-size:18px;font-weight:700}
+.gf-header-sub{font-size:11px;color:#8b949e;margin-top:2px}
+
+/* Activity cards inside each side */
+.gf-card{border:1px solid #30363d;border-radius:10px;padding:14px;margin-bottom:12px;opacity:0.1;transition:all .4s;position:relative}
+.gf-card.visible{opacity:1}
+.gf-card.glow{outline:2px solid #fbbf24;outline-offset:2px}
+.gf-card-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.gf-card-body{font-size:12px;color:#8b949e;margin-top:6px;line-height:1.6}
+.gf-card-code{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px;margin-top:8px;font-family:'Cascadia Code','Fira Code',monospace;font-size:12px;color:#c9d1d9;line-height:1.5;white-space:pre-wrap}
+
+/* Animated arrow that flies across the gap */
+.gf-arrow-track{position:absolute;top:0;bottom:0;left:37%;width:0;pointer-events:none;z-index:10}
+.gf-arrow{position:absolute;left:-60px;width:120px;text-align:center;opacity:0;transition:all .6s}
+.gf-arrow.fly{opacity:1}
+.gf-arrow-icon{font-size:36px;font-weight:700;display:block;line-height:1}
+.gf-arrow-label{font-size:10px;color:#8b949e;margin-top:2px;white-space:nowrap}
+.gf-arrow-badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:monospace}
+@keyframes arrowPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.gf-arrow.fly .gf-arrow-icon{animation:arrowPulse .8s infinite}
+
+/* Bottom: narration + next button */
+.gf-right-panel{flex:26;display:flex;flex-direction:column;background:#111827;border-left:1px solid #30363d;overflow-y:auto}
+.gf-narration{flex:1;padding:20px;overflow-y:auto}
+.gf-narr-step{font-size:11px;color:#fbbf24;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.gf-narr-title{font-size:16px;font-weight:700;color:#e2e8f0}
+.gf-narr-text{font-size:13px;color:#b0bac5;margin-top:6px;line-height:1.6}
+.gf-action{padding:16px 20px;border-top:1px solid #30363d}
+.gf-next-btn{padding:14px 28px;font-size:15px;font-weight:700;border-radius:10px;border:none;cursor:pointer;transition:all .15s;background:#2563eb;color:#fff}
+.gf-next-btn:hover{background:#3b82f6;transform:scale(1.03)}
+.gf-next-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.gf-next-btn.green{background:#16a34a}
+.gf-next-btn.green:hover{background:#22c55e}
+.gf-card-code{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px;font-family:'Cascadia Code','Fira Code',monospace;font-size:12px;color:#c9d1d9;line-height:1.5;white-space:pre-wrap}
+
+/* Animated request */
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+.loading{animation:pulse 1s infinite}
+
+/* scrollbar */
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:#0f1117}
+::-webkit-scrollbar-thumb{background:#30363d;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#484f58}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ── SIDEBAR ──────────────────────────────────────── -->
+  <div class="sidebar">
+    <h2>Web Fundamentals</h2>
+    <div id="nav"></div>
+  </div>
+
+  <!-- ── MAIN ─────────────────────────────────────────── -->
+  <div class="main">
+    <div class="topbar">
+      <h1>Web Fundamentals Lab</h1>
+      <span style="color:#30363d">|</span>
+      <span class="step-title" id="topTitle">Step 1</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:11%"></div></div>
+
+    <div class="content-area">
+      <div class="learn-panel" id="learnPanel"></div>
+      <div class="demo-panel">
+        <div class="demo-header">
+          <h3>Interactive Demo</h3>
+          <span id="demoStatus" style="font-size:12px;color:#8b949e"></span>
+        </div>
+        <div class="demo-body" id="demoBody">
+          <p style="color:#8b949e;text-align:center;margin-top:40px">Select a step to begin</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn btn-outline" id="prevBtn" onclick="nav(-1)">Previous</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="nav(1)">Next Step</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// STEP DATA
+// ─────────────────────────────────────────────────────────────
+const STEPS = [
+  // ── STEP 1: WHAT IS HTTP ──────────────────────────────────
+  {
+    title: "What is HTTP?",
+    icon: "1",
+    learn: `
+      <h2>Step 1 — What is HTTP?</h2>
+      <p class="subtitle">The language computers use to talk to each other over the internet</p>
+
+      <div class="concept-card">
+        <h3>The Big Picture</h3>
+        <p>HTTP stands for <strong>HyperText Transfer Protocol</strong>. It is a simple set of rules that lets two computers communicate over a network.</p>
+        <p style="margin-top:8px">Every time you open a website, your browser (the <strong>client</strong>) sends an HTTP <strong>request</strong> to a computer somewhere (the <strong>server</strong>), and the server sends back an HTTP <strong>response</strong>.</p>
+        <div class="analogy"><strong>Analogy:</strong> Think of it like ordering food at a restaurant. You (client) give your order (request) to the waiter (HTTP), who takes it to the kitchen (server). The kitchen prepares your food and the waiter brings it back (response).</div>
+      </div>
+
+      <div class="concept-card">
+        <h3>What does an HTTP Request look like?</h3>
+        <p>Every HTTP request has these parts:</p>
+        <ul>
+          <li><strong>Method</strong> — what you want to do (GET, POST, etc.)</li>
+          <li><strong>URL / Path</strong> — where you want to go (<code>/menu</code>)</li>
+          <li><strong>Headers</strong> — metadata (who you are, what format you accept)</li>
+          <li><strong>Body</strong> — optional data you're sending (like form data)</li>
+        </ul>
+      </div>
+
+      <div class="concept-card">
+        <h3>What does an HTTP Response look like?</h3>
+        <p>The server replies with:</p>
+        <ul>
+          <li><strong>Status Code</strong> — did it work? (<code>200 OK</code>, <code>404 Not Found</code>, <code>500 Server Error</code>)</li>
+          <li><strong>Headers</strong> — metadata about the response</li>
+          <li><strong>Body</strong> — the actual content (HTML page, JSON data, image, etc.)</li>
+        </ul>
+        <div class="key-point"><strong>Key insight:</strong> HTTP is <em>stateless</em> — the server doesn't remember you between requests. Every request is independent. (That's why websites use cookies and sessions to "remember" you.)</div>
+      </div>
+    `,
+    demo: function() {
+      return `
+        <p style="margin-bottom:16px;color:#8b949e;font-size:13px">This is what happens every time you open a website — two computers talking via HTTP.</p>
+
+        <!-- VISUAL: Two computers communicating -->
+        <div style="background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:24px 16px;text-align:center">
+
+          <!-- The two computers -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+            <!-- Client -->
+            <div style="text-align:center;width:140px">
+              <div style="font-size:48px;line-height:1">&#128187;</div>
+              <div style="font-size:14px;font-weight:700;color:#93c5fd;margin-top:4px">Your Browser</div>
+              <div style="font-size:11px;color:#8b949e">(Client)</div>
+            </div>
+            <!-- Spacer -->
+            <div style="flex:1"></div>
+            <!-- Server -->
+            <div style="text-align:center;width:140px">
+              <div style="font-size:48px;line-height:1">&#128421;</div>
+              <div style="font-size:14px;font-weight:700;color:#86efac;margin-top:4px">Restaurant Server</div>
+              <div style="font-size:11px;color:#8b949e">(Server)</div>
+            </div>
+          </div>
+
+          <!-- Arrow 1: Request -->
+          <div id="httpArrow1" style="margin:12px 0;opacity:0;transition:opacity 0.5s">
+            <div style="display:flex;align-items:center;gap:8px;justify-content:center">
+              <span style="color:#93c5fd;font-size:12px;font-weight:600">CLIENT</span>
+              <div style="flex:1;max-width:200px;height:2px;background:linear-gradient(90deg,#3b82f6,#22c55e);position:relative">
+                <div style="position:absolute;right:-6px;top:-4px;width:0;height:0;border-left:8px solid #22c55e;border-top:5px solid transparent;border-bottom:5px solid transparent"></div>
+              </div>
+              <span style="color:#86efac;font-size:12px;font-weight:600">SERVER</span>
+            </div>
+            <div style="background:#1e3a5f;border:1px solid #3b82f6;border-radius:8px;padding:10px;margin-top:8px;text-align:left">
+              <div style="font-size:11px;color:#8b949e;margin-bottom:4px">HTTP REQUEST</div>
+              <code style="font-size:13px;color:#7dd3fc">GET /menu HTTP/1.1</code><br>
+              <code style="font-size:12px;color:#8b949e">Host: thecurryhouse.com</code>
+            </div>
+          </div>
+
+          <!-- Arrow 2: Response (right to left) -->
+          <div id="httpArrow2" style="margin:12px 0;opacity:0;transition:opacity 0.5s">
+            <div style="display:flex;align-items:center;gap:8px;justify-content:center">
+              <span style="color:#93c5fd;font-size:12px;font-weight:600">CLIENT</span>
+              <div style="flex:1;max-width:200px;height:2px;background:linear-gradient(90deg,#3b82f6,#22c55e);position:relative">
+                <div style="position:absolute;left:-6px;top:-4px;width:0;height:0;border-right:8px solid #3b82f6;border-top:5px solid transparent;border-bottom:5px solid transparent"></div>
+              </div>
+              <span style="color:#86efac;font-size:12px;font-weight:600">SERVER</span>
+            </div>
+            <div style="background:#14532d;border:1px solid #22c55e;border-radius:8px;padding:10px;margin-top:8px;text-align:left">
+              <div style="font-size:11px;color:#8b949e;margin-bottom:4px">HTTP RESPONSE</div>
+              <code style="font-size:13px;color:#86efac">200 OK</code><br>
+              <code style="font-size:12px;color:#8b949e">Content-Type: application/json</code>
+              <pre style="margin:6px 0 0;padding:8px;background:#0d1117;border-radius:6px;font-size:12px;color:#c9d1d9;line-height:1.5">{
+  "restaurant": "The Curry House",
+  "menu": [
+    {"dish": "Paneer Tikka",  "price": 220},
+    {"dish": "Masala Dosa",   "price": 120},
+    {"dish": "Dal Makhani",   "price": 180},
+    {"dish": "Gulab Jamun",   "price": 90}
+  ]
+}</pre>
+            </div>
+          </div>
+
+          <!-- Play button -->
+          <button class="btn btn-primary" style="margin-top:16px" id="httpPlayBtn" onclick="playHttpAnim()">Play: Watch the Request/Response</button>
+
+          <!-- Summary after animation -->
+          <div id="httpSummary" style="margin-top:12px;opacity:0;transition:opacity 0.5s">
+            <p style="color:#fbbf24;font-size:13px;font-weight:600">That's it! That's HTTP.</p>
+            <p style="color:#8b949e;font-size:12px">Your browser asked for data. The server sent it back. Every website you've ever visited works exactly like this.</p>
+          </div>
+        </div>
+
+        <!-- Anatomy label -->
+        <div style="margin-top:16px;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:14px">
+          <p style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:8px">What you just saw:</p>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <div style="flex:1;min-width:150px">
+              <p style="font-size:12px;color:#93c5fd;font-weight:600">REQUEST (blue)</p>
+              <p style="font-size:12px;color:#8b949e"><strong>Method:</strong> GET<br><strong>Path:</strong> /menu<br><strong>Meaning:</strong> "Give me the menu"</p>
+            </div>
+            <div style="flex:1;min-width:150px">
+              <p style="font-size:12px;color:#86efac;font-weight:600">RESPONSE (green)</p>
+              <p style="font-size:12px;color:#8b949e"><strong>Status:</strong> 200 OK<br><strong>Body:</strong> JSON data<br><strong>Meaning:</strong> "Here's your menu"</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  },
+
+  // ── STEP 2: HTTP METHODS ──────────────────────────────────
+  {
+    title: "HTTP Methods",
+    icon: "2",
+    learn: `
+      <h2>Step 2 — HTTP Methods (Verbs)</h2>
+      <p class="subtitle">Different ways to ask the server to do things</p>
+
+      <div class="concept-card">
+        <h3>The Four Main Methods</h3>
+        <p>HTTP defines several "verbs" — each tells the server what kind of action you want:</p>
+        <table>
+          <tr><th>Method</th><th>Purpose</th><th>Example</th></tr>
+          <tr><td><span class="method-badge method-GET">GET</span></td><td>Read / fetch data</td><td>Load a web page, fetch product list</td></tr>
+          <tr><td><span class="method-badge method-POST">POST</span></td><td>Create something new</td><td>Submit a form, add item to cart</td></tr>
+          <tr><td><span class="method-badge method-PUT">PUT</span></td><td>Update existing data</td><td>Edit your profile, update address</td></tr>
+          <tr><td><span class="method-badge method-DELETE">DELETE</span></td><td>Remove something</td><td>Delete an account, remove from cart</td></tr>
+        </table>
+      </div>
+
+      <div class="concept-card">
+        <h3>GET vs POST</h3>
+        <p><strong>GET</strong> requests are "safe" — they only read data. You can repeat them without side effects. Bookmarks and links are GET requests.</p>
+        <p style="margin-top:8px"><strong>POST</strong> requests change something on the server. When you submit a form (sign up, place an order), that's a POST. The browser warns you if you try to refresh a POST request.</p>
+        <div class="analogy"><strong>Analogy:</strong> GET is like reading the menu. POST is like placing an order. Reading the menu doesn't change anything, but placing an order does!</div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Status Codes — The Server's Reply</h3>
+        <table>
+          <tr><th>Code</th><th>Meaning</th><th>When you see it</th></tr>
+          <tr><td><code>200</code></td><td>OK</td><td>Everything worked</td></tr>
+          <tr><td><code>201</code></td><td>Created</td><td>New resource was created (POST success)</td></tr>
+          <tr><td><code>301</code></td><td>Moved</td><td>Page has a new URL</td></tr>
+          <tr><td><code>404</code></td><td>Not Found</td><td>That URL doesn't exist</td></tr>
+          <tr><td><code>500</code></td><td>Server Error</td><td>Something broke on the server</td></tr>
+        </table>
+      </div>
+    `,
+    demo: function() {
+      return `
+        <p style="margin-bottom:12px;color:#8b949e;font-size:13px">Continuing the restaurant analogy — click each verb to expand, try the demo, then collapse.</p>
+
+        <!-- GET -->
+        <div class="accordion" style="margin-bottom:8px">
+          <div class="accordion-header" onclick="toggleAccordion(this)" style="border-left:3px solid #4ade80">
+            <span><span class="method-badge method-GET">GET</span> &nbsp;"Can I see the menu?"</span>
+            <span class="accordion-chevron">&#9660;</span>
+          </div>
+          <div class="accordion-body">
+            <p style="color:#8b949e;font-size:12px;margin-bottom:8px">Reading data — safe, repeatable, no side effects. Like reading the menu board.</p>
+            <div class="btn-group">
+              <button class="btn btn-success btn-sm" onclick="fetchMenu2('/menu')">GET /menu</button>
+              <button class="btn btn-outline btn-sm" onclick="fetchMenu2('/menu?type=starter')">?type=starter</button>
+              <button class="btn btn-outline btn-sm" onclick="fetchMenu2('/menu?type=dessert')">?type=dessert</button>
+            </div>
+            <div id="getResult" style="margin-top:10px"></div>
+          </div>
+        </div>
+
+        <!-- POST -->
+        <div class="accordion" style="margin-bottom:8px">
+          <div class="accordion-header" onclick="toggleAccordion(this)" style="border-left:3px solid #60a5fa">
+            <span><span class="method-badge method-POST">POST</span> &nbsp;"I'd like to place an order"</span>
+            <span class="accordion-chevron">&#9660;</span>
+          </div>
+          <div class="accordion-body">
+            <p style="color:#8b949e;font-size:12px;margin-bottom:8px">Creates something new on the server. The kitchen starts cooking!</p>
+            <div class="btn-group">
+              <button class="btn btn-primary btn-sm" onclick="placeOrder2('Paneer Tikka',2)">Order 2x Paneer Tikka</button>
+              <button class="btn btn-primary btn-sm" onclick="placeOrder2('Masala Dosa',1)">Order 1x Masala Dosa</button>
+            </div>
+            <div id="postResult" style="margin-top:10px"></div>
+          </div>
+        </div>
+
+        <!-- PUT -->
+        <div class="accordion" style="margin-bottom:8px">
+          <div class="accordion-header" onclick="toggleAccordion(this)" style="border-left:3px solid #fb923c">
+            <span><span class="method-badge method-PUT">PUT</span> &nbsp;"Change my order to 3 servings"</span>
+            <span class="accordion-chevron">&#9660;</span>
+          </div>
+          <div class="accordion-body">
+            <p style="color:#8b949e;font-size:12px;margin-bottom:8px">Updates an existing resource. You already ordered — now you're changing it.</p>
+            <button class="btn btn-sm" style="background:#d97706;color:#fff" onclick="sendOrder2('PUT','/order/1',{dish:'Paneer Tikka',qty:3,note:'Make it extra spicy'},'putResult')">PUT /order/1</button>
+            <div id="putResult" style="margin-top:10px"></div>
+          </div>
+        </div>
+
+        <!-- DELETE -->
+        <div class="accordion" style="margin-bottom:8px">
+          <div class="accordion-header" onclick="toggleAccordion(this)" style="border-left:3px solid #f87171">
+            <span><span class="method-badge method-DELETE">DELETE</span> &nbsp;"Cancel my order"</span>
+            <span class="accordion-chevron">&#9660;</span>
+          </div>
+          <div class="accordion-body">
+            <p style="color:#8b949e;font-size:12px;margin-bottom:8px">Removes a resource. The kitchen stops cooking your dish.</p>
+            <button class="btn btn-danger btn-sm" onclick="sendOrder2('DELETE','/order/1',null,'deleteResult')">DELETE /order/1</button>
+            <div id="deleteResult" style="margin-top:10px"></div>
+          </div>
+        </div>
+
+        <!-- 404 ERROR -->
+        <div class="accordion" style="margin-bottom:8px">
+          <div class="accordion-header" onclick="toggleAccordion(this)" style="border-left:3px solid #f87171;border-style:dashed;border-left-style:solid">
+            <span style="color:#f87171">&#9888; What if it doesn't exist?</span>
+            <span class="accordion-chevron">&#9660;</span>
+          </div>
+          <div class="accordion-body">
+            <p style="color:#8b949e;font-size:12px;margin-bottom:8px">Try ordering something that's not on the menu — the server returns <code>404 Not Found</code>.</p>
+            <button class="btn btn-danger btn-sm" onclick="placeOrder2('Pizza',1,'errorResult')">Order 1x Pizza (not on menu!)</button>
+            <div id="errorResult" style="margin-top:10px"></div>
+          </div>
+        </div>
+      `;
+    }
+  },
+
+  // ── STEP 3: HTML ──────────────────────────────────────────
+  {
+    title: "HTML — Structure",
+    icon: "3",
+    learn: `
+      <h2>Step 3 — HTML: The Skeleton</h2>
+      <p class="subtitle">Every web page starts with HTML — it defines what's on the page</p>
+
+      <div class="concept-card">
+        <h3>What is HTML?</h3>
+        <p><strong>HTML</strong> (HyperText Markup Language) is not a programming language — it's a <em>markup</em> language. It tells the browser what content to show and how to structure it.</p>
+        <p style="margin-top:8px">An HTML document is made of <strong>elements</strong> — each wrapped in tags like <code>&lt;h1&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;img&gt;</code>.</p>
+      </div>
+
+      <div class="concept-card">
+        <h3>Key HTML Elements</h3>
+        <table>
+          <tr><th>Tag</th><th>Purpose</th></tr>
+          <tr><td><code>&lt;h1&gt;...&lt;h6&gt;</code></td><td>Headings (h1 = biggest)</td></tr>
+          <tr><td><code>&lt;p&gt;</code></td><td>Paragraph of text</td></tr>
+          <tr><td><code>&lt;a href="..."&gt;</code></td><td>Link to another page</td></tr>
+          <tr><td><code>&lt;img src="..."&gt;</code></td><td>An image</td></tr>
+          <tr><td><code>&lt;ul&gt; / &lt;ol&gt;</code></td><td>Bullet / numbered lists</td></tr>
+          <tr><td><code>&lt;div&gt;</code></td><td>A generic container (box)</td></tr>
+          <tr><td><code>&lt;button&gt;</code></td><td>A clickable button</td></tr>
+          <tr><td><code>&lt;input&gt;</code></td><td>Text input, checkbox, etc.</td></tr>
+        </table>
+      </div>
+
+      <div class="concept-card">
+        <h3>The Minimal HTML Page</h3>
+        <p>Every HTML page has this basic structure:</p>
+<pre style="background:#0d1117;padding:12px;border-radius:6px;font-size:13px;margin-top:8px;color:#c9d1d9;line-height:1.6">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Page Title&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Hello World&lt;/h1&gt;
+    &lt;p&gt;This is my first web page.&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+        <div class="key-point"><strong>Key insight:</strong> HTML only defines <em>structure</em> and <em>content</em>. It says "this is a heading" and "this is a paragraph" — but it doesn't say what color, size, or font to use. That's CSS (Step 4).</div>
+      </div>
+    `,
+    demo: function() {
+      return `
+        <p style="margin-bottom:8px;color:#8b949e;font-size:13px">Edit the HTML below and see it rendered live. Try adding elements!</p>
+        <div class="editor-wrap">
+          <div class="editor-tabs"><div class="editor-tab active">index.html</div></div>
+          <textarea class="editor-textarea" id="htmlEditor" oninput="updatePreview()">&lt;h1&gt;Welcome to My Shop&lt;/h1&gt;
+&lt;p&gt;We sell the best gadgets online.&lt;/p&gt;
+
+&lt;h2&gt;Featured Products&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;Wireless Mouse - Rs. 599&lt;/li&gt;
+  &lt;li&gt;USB-C Hub - Rs. 1,299&lt;/li&gt;
+  &lt;li&gt;Laptop Stand - Rs. 1,899&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;button&gt;Add to Cart&lt;/button&gt;
+
+&lt;p&gt;&lt;em&gt;Free shipping on orders over Rs. 1,000!&lt;/em&gt;&lt;/p&gt;</textarea>
+        </div>
+        <p style="margin:12px 0 4px;color:#8b949e;font-size:12px;font-weight:600">LIVE PREVIEW</p>
+        <iframe id="previewFrame" class="preview-frame" sandbox="allow-scripts"></iframe>
+      `;
+    },
+    afterRender: function() { updatePreview(); }
+  },
+
+  // ── STEP 4: CSS ───────────────────────────────────────────
+  {
+    title: "CSS — Styling",
+    icon: "4",
+    learn: `
+      <h2>Step 4 — CSS: Making It Look Good</h2>
+      <p class="subtitle">CSS controls colors, fonts, spacing, and layout</p>
+
+      <div class="concept-card">
+        <h3>What is CSS?</h3>
+        <p><strong>CSS</strong> (Cascading Style Sheets) is the "paint and wallpaper" of a web page. While HTML defines <em>what</em> is on the page, CSS defines <em>how it looks</em>.</p>
+        <div class="analogy"><strong>Analogy:</strong> HTML is the blueprint of a house (walls, rooms, doors). CSS is the interior design (paint color, flooring, furniture style).</div>
+      </div>
+
+      <div class="concept-card">
+        <h3>CSS Syntax</h3>
+        <p>A CSS rule has a <strong>selector</strong> (what to style) and <strong>declarations</strong> (how to style it):</p>
+<pre style="background:#0d1117;padding:12px;border-radius:6px;font-size:13px;margin-top:8px;color:#c9d1d9">h1 {
+  color: navy;         /* text color */
+  font-size: 28px;     /* how big */
+  text-align: center;  /* alignment */
+}</pre>
+      </div>
+
+      <div class="concept-card">
+        <h3>Common CSS Properties</h3>
+        <table>
+          <tr><th>Property</th><th>What it does</th></tr>
+          <tr><td><code>color</code></td><td>Text color</td></tr>
+          <tr><td><code>background</code></td><td>Background color or image</td></tr>
+          <tr><td><code>font-size</code></td><td>Text size</td></tr>
+          <tr><td><code>margin</code></td><td>Space outside an element</td></tr>
+          <tr><td><code>padding</code></td><td>Space inside an element</td></tr>
+          <tr><td><code>border</code></td><td>Border around an element</td></tr>
+          <tr><td><code>border-radius</code></td><td>Rounded corners</td></tr>
+          <tr><td><code>display: flex</code></td><td>Flexible layout (row/column)</td></tr>
+        </table>
+        <div class="key-point"><strong>Key insight:</strong> CSS is what makes the same HTML look completely different on different websites. Try changing the colors in the demo!</div>
+      </div>
+    `,
+    demo: function() {
+      return `
+        <p style="margin-bottom:8px;color:#8b949e;font-size:13px">Edit the CSS to change how the page looks. Try changing colors, sizes, backgrounds!</p>
+        <div class="editor-wrap">
+          <div class="editor-tabs">
+            <div class="editor-tab active" onclick="showEditorTab('html4')">HTML</div>
+            <div class="editor-tab" onclick="showEditorTab('css4')">CSS</div>
+          </div>
+          <textarea class="editor-textarea" id="html4Editor" oninput="updatePreview4()">&lt;h1&gt;Welcome to My Shop&lt;/h1&gt;
+&lt;p class="tagline"&gt;We sell the best gadgets online.&lt;/p&gt;
+&lt;div class="product-card"&gt;
+  &lt;h3&gt;Wireless Mouse&lt;/h3&gt;
+  &lt;p class="price"&gt;Rs. 599&lt;/p&gt;
+  &lt;button class="buy-btn"&gt;Add to Cart&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="product-card"&gt;
+  &lt;h3&gt;USB-C Hub&lt;/h3&gt;
+  &lt;p class="price"&gt;Rs. 1,299&lt;/p&gt;
+  &lt;button class="buy-btn"&gt;Add to Cart&lt;/button&gt;
+&lt;/div&gt;</textarea>
+          <textarea class="editor-textarea" id="css4Editor" style="display:none" oninput="updatePreview4()">body {
+  font-family: Arial, sans-serif;
+  background: #f0f4f8;
+  padding: 20px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+h1 {
+  color: #1e40af;
+  text-align: center;
+}
+.tagline {
+  text-align: center;
+  color: #64748b;
+  margin-bottom: 20px;
+}
+.product-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.price {
+  color: #16a34a;
+  font-size: 20px;
+  font-weight: bold;
+}
+.buy-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.buy-btn:hover {
+  background: #1d4ed8;
+}</textarea>
+        </div>
+        <p style="margin:12px 0 4px;color:#8b949e;font-size:12px;font-weight:600">LIVE PREVIEW</p>
+        <iframe id="previewFrame4" class="preview-frame" sandbox="allow-scripts"></iframe>
+      `;
+    },
+    afterRender: function() { updatePreview4(); }
+  },
+
+  // ── STEP 5: JAVASCRIPT ────────────────────────────────────
+  {
+    title: "JavaScript — Behavior",
+    icon: "5",
+    learn: `
+      <h2>Step 5 — JavaScript: Making It Interactive</h2>
+      <p class="subtitle">JavaScript makes web pages respond to clicks, inputs, and events</p>
+
+      <div class="concept-card">
+        <h3>What is JavaScript?</h3>
+        <p>HTML = structure. CSS = style. <strong>JavaScript = behavior</strong>. It's the only real <em>programming language</em> of the three.</p>
+        <p style="margin-top:8px">JavaScript runs <strong>inside the browser</strong>. It can:</p>
+        <ul>
+          <li>React to button clicks and key presses</li>
+          <li>Change the page content without reloading</li>
+          <li>Send HTTP requests to the server (fetch data)</li>
+          <li>Validate forms before submitting</li>
+          <li>Create animations and visual effects</li>
+        </ul>
+        <div class="analogy"><strong>Analogy:</strong> If HTML is the house structure and CSS is the decor, JavaScript is the <em>electricity</em> — it makes switches work, doors open automatically, and lights turn on when you walk in.</div>
+      </div>
+
+      <div class="concept-card">
+        <h3>JavaScript Basics</h3>
+<pre style="background:#0d1117;padding:12px;border-radius:6px;font-size:13px;margin-top:8px;color:#c9d1d9;line-height:1.6">// Find an element on the page
+let btn = document.querySelector('.buy-btn');
+
+// Listen for a click
+btn.addEventListener('click', function() {
+  alert('Added to cart!');
+});
+
+// Change text on the page
+document.querySelector('h1').textContent = 'New Title';</pre>
+      </div>
+
+      <div class="concept-card">
+        <h3>HTML + CSS + JS = Complete Web Page</h3>
+        <p>These three technologies work together in every web page you visit:</p>
+        <table>
+          <tr><th>Technology</th><th>Role</th><th>File type</th></tr>
+          <tr><td><strong>HTML</strong></td><td>Content & structure</td><td><code>.html</code></td></tr>
+          <tr><td><strong>CSS</strong></td><td>Visual appearance</td><td><code>.css</code></td></tr>
+          <tr><td><strong>JavaScript</strong></td><td>Interactivity & logic</td><td><code>.js</code></td></tr>
+        </table>
+        <div class="key-point"><strong>Key insight:</strong> All three run <em>in the browser</em> (the client side). The server sends these files, and your browser puts them together. This is the "frontend".</div>
+      </div>
+    `,
+    demo: function() {
+      return `
+        <p style="margin-bottom:8px;color:#8b949e;font-size:13px">This page has all three: HTML, CSS, and JavaScript. Click the buttons in the preview!</p>
+        <div class="editor-wrap">
+          <div class="editor-tabs">
+            <div class="editor-tab active" onclick="showEditorTab5('html5')">HTML</div>
+            <div class="editor-tab" onclick="showEditorTab5('css5')">CSS</div>
+            <div class="editor-tab" onclick="showEditorTab5('js5')">JS</div>
+          </div>
+          <textarea class="editor-textarea" id="html5Editor" oninput="updatePreview5()">&lt;h1&gt;My Shop&lt;/h1&gt;
+&lt;div class="product-card"&gt;
+  &lt;h3&gt;Wireless Mouse&lt;/h3&gt;
+  &lt;p class="price"&gt;Rs. 599&lt;/p&gt;
+  &lt;button class="buy-btn" onclick="addToCart('Wireless Mouse', 599)"&gt;Add to Cart&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="product-card"&gt;
+  &lt;h3&gt;USB-C Hub&lt;/h3&gt;
+  &lt;p class="price"&gt;Rs. 1,299&lt;/p&gt;
+  &lt;button class="buy-btn" onclick="addToCart('USB-C Hub', 1299)"&gt;Add to Cart&lt;/button&gt;
+&lt;/div&gt;
+&lt;div id="cart"&gt;
+  &lt;h3&gt;Cart (&lt;span id="count"&gt;0&lt;/span&gt; items)&lt;/h3&gt;
+  &lt;p&gt;Total: Rs. &lt;span id="total"&gt;0&lt;/span&gt;&lt;/p&gt;
+&lt;/div&gt;</textarea>
+          <textarea class="editor-textarea" id="css5Editor" style="display:none" oninput="updatePreview5()">body { font-family: Arial, sans-serif; background: #f0f4f8; padding: 20px; max-width: 400px; margin: 0 auto; }
+h1 { color: #1e40af; }
+.product-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.price { color: #16a34a; font-size: 20px; font-weight: bold; }
+.buy-btn { background: #2563eb; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; }
+.buy-btn:hover { background: #1d4ed8; }
+#cart { background: #fef3c7; border: 2px solid #f59e0b; border-radius: 12px; padding: 16px; margin-top: 16px; }
+#cart h3 { color: #92400e; }</textarea>
+          <textarea class="editor-textarea" id="js5Editor" style="display:none" oninput="updatePreview5()">let cart = [];
+
+function addToCart(name, price) {
+  cart.push({ name: name, price: price });
+  document.getElementById('count').textContent = cart.length;
+  let total = cart.reduce((sum, item) => sum + item.price, 0);
+  document.getElementById('total').textContent = total.toLocaleString();
+
+  // Quick visual feedback
+  event.target.textContent = 'Added!';
+  event.target.style.background = '#16a34a';
+  setTimeout(() => {
+    event.target.textContent = 'Add to Cart';
+    event.target.style.background = '#2563eb';
+  }, 800);
+}</textarea>
+        </div>
+        <p style="margin:12px 0 4px;color:#8b949e;font-size:12px;font-weight:600">LIVE PREVIEW (click the buttons!)</p>
+        <iframe id="previewFrame5" class="preview-frame" sandbox="allow-scripts"></iframe>
+      `;
+    },
+    afterRender: function() { updatePreview5(); }
+  },
+
+  // ── STEP 6: FRONTEND ──────────────────────────────────────
+  {
+    title: "Frontend — The Browser Side",
+    icon: "6",
+    learn: `
+      <h2>Step 6 — Frontend Technologies</h2>
+      <p class="subtitle">Everything that runs in the user's browser</p>
+
+      <div class="concept-card">
+        <h3>What is the Frontend?</h3>
+        <p>The <strong>frontend</strong> (or "client side") is everything that happens <em>in the user's browser</em>. When you visit a website, the server sends HTML, CSS, and JavaScript files — your browser downloads them and renders the page.</p>
+        <p style="margin-top:8px">The frontend is responsible for:</p>
+        <ul>
+          <li><strong>Rendering</strong> — displaying the page visually</li>
+          <li><strong>User interaction</strong> — clicks, typing, scrolling</li>
+          <li><strong>Client-side logic</strong> — form validation, animations, cart updates</li>
+          <li><strong>Communicating with the server</strong> — sending API requests (e.g., fetch product data)</li>
+        </ul>
+      </div>
+
+      <div class="concept-card">
+        <h3>Evolution of Frontend Tech</h3>
+        <div class="tech-row">
+          <div class="tech-card">
+            <div class="era">1990s</div>
+            <div class="tech-name">Static HTML</div>
+            <div class="tech-desc">Plain pages. No interactivity. Click a link → load a whole new page.</div>
+          </div>
+          <div class="tech-card">
+            <div class="era">2006</div>
+            <div class="tech-name">jQuery</div>
+            <div class="tech-desc">Made JavaScript easier. Animations, AJAX calls to update parts of a page.</div>
+          </div>
+          <div class="tech-card">
+            <div class="era">2010s+</div>
+            <div class="tech-name">React / Vue / Angular</div>
+            <div class="tech-desc">Full "apps" in the browser. Build once, update dynamically — no page reloads.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Traditional vs Modern Frontend</h3>
+        <table>
+          <tr><th></th><th>Traditional (2000s)</th><th>Modern (SPA)</th></tr>
+          <tr><td><strong>Page load</strong></td><td>Server generates full HTML</td><td>Server sends empty shell + JS bundle</td></tr>
+          <tr><td><strong>Navigation</strong></td><td>Click link → new page from server</td><td>JS swaps content, URL updates</td></tr>
+          <tr><td><strong>Data</strong></td><td>Embedded in HTML</td><td>Fetched from API as JSON</td></tr>
+          <tr><td><strong>Example</strong></td><td>Wikipedia, Craigslist</td><td>Gmail, Flipkart, Amazon</td></tr>
+        </table>
+        <div class="key-point"><strong>Key insight:</strong> Modern frontends are like "apps that run in the browser." They talk to the backend only for data (via APIs) — they handle all the UI logic themselves.</div>
+      </div>
+    `,
+    demo: function() {
+      return `
+        <p style="margin-bottom:12px;color:#8b949e;font-size:13px">See the difference: Traditional page loads vs modern single-page app behavior.</p>
+        <div style="margin-bottom:20px">
+          <h4 style="color:#e2e8f0;font-size:14px;margin-bottom:8px">Traditional: Full Page Reload</h4>
+          <div style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:16px">
+            <div style="background:#1e2736;padding:8px 12px;border-radius:6px 6px 0 0;font-size:12px;color:#8b949e;display:flex;align-items:center;gap:8px">
+              <span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block"></span>
+              <span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block"></span>
+              <span style="width:10px;height:10px;border-radius:50%;background:#22c55e;display:inline-block"></span>
+              <span style="flex:1;background:#0d1117;padding:4px 8px;border-radius:4px;font-family:monospace;font-size:11px;color:#8b949e" id="tradUrl">myshop.com/home</span>
+            </div>
+            <div id="tradContent" style="padding:12px;font-size:13px;min-height:60px;transition:opacity .3s">
+              <strong>Home Page</strong> — Welcome to MyShop!
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn btn-outline btn-sm" onclick="tradNav('home')">Home</button>
+              <button class="btn btn-outline btn-sm" onclick="tradNav('products')">Products</button>
+              <button class="btn btn-outline btn-sm" onclick="tradNav('about')">About</button>
+            </div>
+            <p style="color:#f59e0b;font-size:11px;margin-top:8px" id="tradNote"></p>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="color:#e2e8f0;font-size:14px;margin-bottom:8px">Modern SPA: No Reload, Just Data</h4>
+          <div style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:16px">
+            <div style="background:#1e2736;padding:8px 12px;border-radius:6px 6px 0 0;font-size:12px;color:#8b949e;display:flex;align-items:center;gap:8px">
+              <span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block"></span>
+              <span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block"></span>
+              <span style="width:10px;height:10px;border-radius:50%;background:#22c55e;display:inline-block"></span>
+              <span style="flex:1;background:#0d1117;padding:4px 8px;border-radius:4px;font-family:monospace;font-size:11px;color:#8b949e" id="spaUrl">myshop.com/home</span>
+            </div>
+            <div id="spaContent" style="padding:12px;font-size:13px;min-height:60px">
+              <strong>Home Page</strong> — Welcome to MyShop!
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn btn-outline btn-sm" onclick="spaNav('home')">Home</button>
+              <button class="btn btn-outline btn-sm" onclick="spaNav('products')">Products</button>
+              <button class="btn btn-outline btn-sm" onclick="spaNav('about')">About</button>
+            </div>
+            <p style="color:#22c55e;font-size:11px;margin-top:8px" id="spaNote"></p>
+          </div>
+        </div>
+      `;
+    }
+  },
+
+  // ── STEP 7: BACKEND ───────────────────────────────────────
+  {
+    title: "Backend — The Server Side",
+    icon: "7",
+    learn: `
+      <h2>Step 7 — Backend Technologies</h2>
+      <p class="subtitle">Everything that runs on the server — the language changes, the concept doesn't</p>
+
+      <div class="concept-card">
+        <h3>What is the Backend?</h3>
+        <p>The <strong>backend</strong> (or "server side") is the code that runs <em>on the server</em> — a computer somewhere in a data center. It handles:</p>
+        <ul>
+          <li><strong>Business logic</strong> — calculate prices, apply discounts, process orders</li>
+          <li><strong>Data storage</strong> — read/write from a database</li>
+          <li><strong>Authentication</strong> — who are you? are you allowed to do this?</li>
+          <li><strong>Serving the frontend</strong> — send HTML/CSS/JS files to the browser</li>
+          <li><strong>API endpoints</strong> — respond to requests from the frontend</li>
+        </ul>
+        <div class="analogy"><strong>Analogy:</strong> If the frontend is the restaurant dining room (what customers see), the backend is the kitchen (where the real work happens). Customers never see the kitchen, but that's where food is prepared, orders are tracked, and inventory is managed.</div>
+      </div>
+
+      <div class="concept-card">
+        <h3>Evolution of Backend Tech</h3>
+        <p>The technology changed over the decades, but the <em>job</em> stayed the same: <strong>receive a request, do some work, send a response.</strong></p>
+        <div class="tech-row">
+          <div class="tech-card">
+            <div class="era">1993</div>
+            <div class="tech-name">CGI / Perl</div>
+            <div class="tech-desc">The very first dynamic web pages. The web server spawns a Perl script for each request. It prints HTML to stdout. Revolutionary — but slow (a new process per request!).</div>
+          </div>
+          <div class="tech-card">
+            <div class="era">1995–2000s</div>
+            <div class="tech-name">PHP / ASP</div>
+            <div class="tech-desc">Code is embedded directly inside HTML files. The server executes the code and sends the result. WordPress, early Facebook — all PHP. Easy to start, messy at scale.</div>
+          </div>
+        </div>
+        <div class="tech-row">
+          <div class="tech-card">
+            <div class="era">2005+</div>
+            <div class="tech-name">Python / Ruby / Java</div>
+            <div class="tech-desc">Proper frameworks: Django, Rails, Spring. Separated code from HTML. Structured, testable, scalable. Instagram runs on Django (Python).</div>
+          </div>
+          <div class="tech-card">
+            <div class="era">2009+</div>
+            <div class="tech-name">Node.js / Go / C#</div>
+            <div class="tech-desc">JavaScript on the server (Node). Go for raw speed. C# with ASP.NET for enterprise. Netflix, LinkedIn, Uber — all use these.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="concept-card" style="border-color:#f59e0b">
+        <h3 style="color:#f59e0b">The Big Lesson: Same Concept, Different Syntax</h3>
+        <p>Look at the demo panel on the right. We show the <strong>exact same endpoint</strong> — "list all products" — written in <em>6 different languages</em> spanning 30 years of web history.</p>
+        <p style="margin-top:8px">Every single one does the same three things:</p>
+        <ol style="padding-left:20px;margin-top:8px">
+          <li style="margin-bottom:4px"><strong>Listen</strong> for a GET request on a URL</li>
+          <li style="margin-bottom:4px"><strong>Query</strong> data (from a list, database, file…)</li>
+          <li style="margin-bottom:4px"><strong>Return</strong> the data as a response</li>
+        </ol>
+        <div class="key-point"><strong>Key insight:</strong> The language is just a convenience — a preference, like choosing to write a letter in English, Hindi, or Spanish. The <em>concept</em> of "receive request → process → respond" is universal and timeless. Once you understand it, you can read backend code in any language.</div>
+      </div>
+
+      <div class="concept-card">
+        <h3>The Database</h3>
+        <p>Almost every backend needs a <strong>database</strong> to store data persistently:</p>
+        <table>
+          <tr><th>Type</th><th>Examples</th><th>Best for</th></tr>
+          <tr><td>Relational (SQL)</td><td>PostgreSQL, MySQL</td><td>Structured data: users, orders, products</td></tr>
+          <tr><td>Document (NoSQL)</td><td>MongoDB, CosmosDB</td><td>Flexible data: profiles, content, logs</td></tr>
+          <tr><td>Key-Value</td><td>Redis</td><td>Caching, sessions, real-time data</td></tr>
+        </table>
+        <p style="margin-top:8px;font-size:13px;color:#8b949e">This lab uses an in-memory Python list — but in production, the <code>PRODUCTS</code> list would be a database table.</p>
+      </div>
+    `,
+    demo: function() {
+      return `
+        <p style="margin-bottom:12px;color:#8b949e;font-size:13px">The same endpoint — "list products" — written in 6 languages. Click each tab. Notice: the <em>structure</em> is identical; only the syntax changes.</p>
+
+        <div class="editor-wrap">
+          <div class="editor-tabs" id="langTabs">
+            <div class="editor-tab active" onclick="showLang('perl')">CGI/Perl</div>
+            <div class="editor-tab" onclick="showLang('php')">PHP</div>
+            <div class="editor-tab" onclick="showLang('python')">Python</div>
+            <div class="editor-tab" onclick="showLang('node')">Node.js</div>
+            <div class="editor-tab" onclick="showLang('csharp')">C# / .NET</div>
+            <div class="editor-tab" onclick="showLang('java')">Java</div>
+          </div>
+
+<pre id="lang-perl" class="lang-block" style="margin:0;background:#0d1117;padding:16px;font-size:13px;color:#c9d1d9;line-height:1.7;border-radius:0 0 8px 8px"><span style="color:#8b949e">#!/usr/bin/perl  (CGI — 1993 style)
+# The web server runs this script for EACH request.
+# Output goes straight to the browser.</span>
+
+<span style="color:#ff7b72">use</span> CGI;
+<span style="color:#ff7b72">use</span> JSON;
+
+<span style="color:#8b949e"># 1. Listen: Apache runs this script when someone visits
+#    http://myshop.com/cgi-bin/products.pl</span>
+
+<span style="color:#ff7b72">my</span> $cgi = CGI-><span style="color:#d2a8ff">new</span>;
+
+<span style="color:#8b949e"># 2. Query: read from a database</span>
+<span style="color:#ff7b72">my</span> @products = (
+  { id => <span style="color:#79c0ff">1</span>, name => <span style="color:#a5d6ff">"Wireless Mouse"</span>,  price => <span style="color:#79c0ff">599</span>  },
+  { id => <span style="color:#79c0ff">2</span>, name => <span style="color:#a5d6ff">"USB-C Hub"</span>,       price => <span style="color:#79c0ff">1299</span> },
+);
+
+<span style="color:#8b949e"># 3. Respond: print HTTP headers + JSON body</span>
+<span style="color:#ff7b72">print</span> $cgi-><span style="color:#d2a8ff">header</span>(<span style="color:#a5d6ff">'application/json'</span>);
+<span style="color:#ff7b72">print</span> encode_json({ products => \\@products });</pre>
+
+<pre id="lang-php" class="lang-block" style="display:none;margin:0;background:#0d1117;padding:16px;font-size:13px;color:#c9d1d9;line-height:1.7;border-radius:0 0 8px 8px"><span style="color:#8b949e">&lt;?php  // PHP — late 1990s / 2000s style
+// Code is embedded in the web server (Apache mod_php).
+// Filename: /var/www/api/products.php</span>
+
+<span style="color:#8b949e">// 1. Listen: Apache routes /api/products.php here
+//    (URL = filename — no routing framework needed)</span>
+
+<span style="color:#8b949e">// 2. Query: fetch from database</span>
+<span style="color:#ff7b72">$products</span> = [
+  [<span style="color:#a5d6ff">"id"</span> => <span style="color:#79c0ff">1</span>, <span style="color:#a5d6ff">"name"</span> => <span style="color:#a5d6ff">"Wireless Mouse"</span>,  <span style="color:#a5d6ff">"price"</span> => <span style="color:#79c0ff">599</span>],
+  [<span style="color:#a5d6ff">"id"</span> => <span style="color:#79c0ff">2</span>, <span style="color:#a5d6ff">"name"</span> => <span style="color:#a5d6ff">"USB-C Hub"</span>,       <span style="color:#a5d6ff">"price"</span> => <span style="color:#79c0ff">1299</span>],
+];
+
+<span style="color:#8b949e">// 3. Respond: set header and echo JSON</span>
+<span style="color:#d2a8ff">header</span>(<span style="color:#a5d6ff">'Content-Type: application/json'</span>);
+<span style="color:#ff7b72">echo</span> <span style="color:#d2a8ff">json_encode</span>([<span style="color:#a5d6ff">"products"</span> => <span style="color:#ff7b72">$products</span>]);
+<span style="color:#8b949e">?&gt;</span></pre>
+
+<pre id="lang-python" class="lang-block" style="display:none;margin:0;background:#0d1117;padding:16px;font-size:13px;color:#c9d1d9;line-height:1.7;border-radius:0 0 8px 8px"><span style="color:#8b949e"># Python + Flask — 2010s style
+# THIS IS THE ACTUAL CODE running this lab!</span>
+
+<span style="color:#ff7b72">from</span> flask <span style="color:#ff7b72">import</span> Flask, jsonify, request
+
+app = Flask(__name__)
+
+PRODUCTS = [
+  {<span style="color:#a5d6ff">"id"</span>: <span style="color:#79c0ff">1</span>, <span style="color:#a5d6ff">"name"</span>: <span style="color:#a5d6ff">"Wireless Mouse"</span>,  <span style="color:#a5d6ff">"price"</span>: <span style="color:#79c0ff">599</span>},
+  {<span style="color:#a5d6ff">"id"</span>: <span style="color:#79c0ff">2</span>, <span style="color:#a5d6ff">"name"</span>: <span style="color:#a5d6ff">"USB-C Hub"</span>,       <span style="color:#a5d6ff">"price"</span>: <span style="color:#79c0ff">1299</span>},
+]
+
+<span style="color:#8b949e"># 1. Listen: Flask routes GET /api/products here</span>
+<span style="color:#ff7b72">@app.route</span>(<span style="color:#a5d6ff">"/api/products"</span>, methods=[<span style="color:#a5d6ff">"GET"</span>])
+<span style="color:#ff7b72">def</span> <span style="color:#d2a8ff">list_products</span>():
+    <span style="color:#8b949e"># 2. Query: filter by category if provided</span>
+    cat = request.args.get(<span style="color:#a5d6ff">"category"</span>)
+    items = [p <span style="color:#ff7b72">for</span> p <span style="color:#ff7b72">in</span> PRODUCTS
+             <span style="color:#ff7b72">if not</span> cat <span style="color:#ff7b72">or</span> p[<span style="color:#a5d6ff">"category"</span>] == cat]
+    <span style="color:#8b949e"># 3. Respond: return JSON</span>
+    <span style="color:#ff7b72">return</span> jsonify({<span style="color:#a5d6ff">"products"</span>: items})</pre>
+
+<pre id="lang-node" class="lang-block" style="display:none;margin:0;background:#0d1117;padding:16px;font-size:13px;color:#c9d1d9;line-height:1.7;border-radius:0 0 8px 8px"><span style="color:#8b949e">// Node.js + Express — 2010s style
+// JavaScript running on the SERVER (not the browser!)</span>
+
+<span style="color:#ff7b72">const</span> express = <span style="color:#d2a8ff">require</span>(<span style="color:#a5d6ff">'express'</span>);
+<span style="color:#ff7b72">const</span> app = <span style="color:#d2a8ff">express</span>();
+
+<span style="color:#ff7b72">const</span> PRODUCTS = [
+  { id: <span style="color:#79c0ff">1</span>, name: <span style="color:#a5d6ff">"Wireless Mouse"</span>,  price: <span style="color:#79c0ff">599</span>  },
+  { id: <span style="color:#79c0ff">2</span>, name: <span style="color:#a5d6ff">"USB-C Hub"</span>,       price: <span style="color:#79c0ff">1299</span> },
+];
+
+<span style="color:#8b949e">// 1. Listen: Express routes GET /api/products here</span>
+app.<span style="color:#d2a8ff">get</span>(<span style="color:#a5d6ff">'/api/products'</span>, (req, res) => {
+  <span style="color:#8b949e">// 2. Query: filter by category if provided</span>
+  <span style="color:#ff7b72">const</span> cat = req.query.category;
+  <span style="color:#ff7b72">const</span> items = cat
+    ? PRODUCTS.<span style="color:#d2a8ff">filter</span>(p => p.category === cat)
+    : PRODUCTS;
+  <span style="color:#8b949e">// 3. Respond: send JSON</span>
+  res.<span style="color:#d2a8ff">json</span>({ products: items });
+});</pre>
+
+<pre id="lang-csharp" class="lang-block" style="display:none;margin:0;background:#0d1117;padding:16px;font-size:13px;color:#c9d1d9;line-height:1.7;border-radius:0 0 8px 8px"><span style="color:#8b949e">// C# / ASP.NET Core — enterprise style
+// Used by many large companies, Azure services</span>
+
+[<span style="color:#d2a8ff">ApiController</span>]
+[<span style="color:#d2a8ff">Route</span>(<span style="color:#a5d6ff">"api/[controller]"</span>)]
+<span style="color:#ff7b72">public class</span> <span style="color:#d2a8ff">ProductsController</span> : ControllerBase
+{
+    <span style="color:#ff7b72">private static</span> List&lt;Product&gt; _products = <span style="color:#ff7b72">new</span>()
+    {
+        <span style="color:#ff7b72">new</span> Product { Id=<span style="color:#79c0ff">1</span>, Name=<span style="color:#a5d6ff">"Wireless Mouse"</span>,  Price=<span style="color:#79c0ff">599</span>  },
+        <span style="color:#ff7b72">new</span> Product { Id=<span style="color:#79c0ff">2</span>, Name=<span style="color:#a5d6ff">"USB-C Hub"</span>,       Price=<span style="color:#79c0ff">1299</span> },
+    };
+
+    <span style="color:#8b949e">// 1. Listen: ASP.NET routes GET /api/products here</span>
+    [<span style="color:#d2a8ff">HttpGet</span>]
+    <span style="color:#ff7b72">public</span> IActionResult <span style="color:#d2a8ff">Get</span>([FromQuery] <span style="color:#ff7b72">string</span>? category)
+    {
+        <span style="color:#8b949e">// 2. Query: filter by category</span>
+        <span style="color:#ff7b72">var</span> items = category != <span style="color:#ff7b72">null</span>
+            ? _products.Where(p => p.Category == category)
+            : _products;
+        <span style="color:#8b949e">// 3. Respond: return JSON</span>
+        <span style="color:#ff7b72">return</span> <span style="color:#d2a8ff">Ok</span>(<span style="color:#ff7b72">new</span> { products = items });
+    }
+}</pre>
+
+<pre id="lang-java" class="lang-block" style="display:none;margin:0;background:#0d1117;padding:16px;font-size:13px;color:#c9d1d9;line-height:1.7;border-radius:0 0 8px 8px"><span style="color:#8b949e">// Java + Spring Boot — enterprise style
+// Banks, airlines, and large e-commerce platforms</span>
+
+<span style="color:#ff7b72">@RestController</span>
+<span style="color:#ff7b72">@RequestMapping</span>(<span style="color:#a5d6ff">"/api/products"</span>)
+<span style="color:#ff7b72">public class</span> <span style="color:#d2a8ff">ProductController</span> {
+
+    <span style="color:#ff7b72">private</span> List&lt;Product&gt; products = List.<span style="color:#d2a8ff">of</span>(
+        <span style="color:#ff7b72">new</span> <span style="color:#d2a8ff">Product</span>(<span style="color:#79c0ff">1</span>, <span style="color:#a5d6ff">"Wireless Mouse"</span>,  <span style="color:#79c0ff">599</span>),
+        <span style="color:#ff7b72">new</span> <span style="color:#d2a8ff">Product</span>(<span style="color:#79c0ff">2</span>, <span style="color:#a5d6ff">"USB-C Hub"</span>,       <span style="color:#79c0ff">1299</span>)
+    );
+
+    <span style="color:#8b949e">// 1. Listen: Spring routes GET /api/products here</span>
+    <span style="color:#ff7b72">@GetMapping</span>
+    <span style="color:#ff7b72">public</span> Map&lt;String, Object&gt; <span style="color:#d2a8ff">list</span>(
+            <span style="color:#ff7b72">@RequestParam</span>(required=<span style="color:#79c0ff">false</span>) String category) {
+        <span style="color:#8b949e">// 2. Query: filter by category</span>
+        <span style="color:#ff7b72">var</span> items = category != <span style="color:#ff7b72">null</span>
+            ? products.stream()
+                .filter(p -> p.category().equals(category))
+                .toList()
+            : products;
+        <span style="color:#8b949e">// 3. Respond: return JSON</span>
+        <span style="color:#ff7b72">return</span> Map.<span style="color:#d2a8ff">of</span>(<span style="color:#a5d6ff">"products"</span>, items);
+    }
+}</pre>
+        </div>
+
+        <div style="margin-top:16px;background:#1a2332;border:1px solid #f59e0b55;border-radius:8px;padding:14px">
+          <p style="color:#fbbf24;font-size:13px;font-weight:600;margin-bottom:6px">Notice the pattern in every language:</p>
+          <p style="color:#e2e8f0;font-size:13px"><strong>1. LISTEN</strong> — "when someone sends GET /api/products, run this function"</p>
+          <p style="color:#e2e8f0;font-size:13px"><strong>2. QUERY</strong> — "get the data (from a list, a database, a file…)"</p>
+          <p style="color:#e2e8f0;font-size:13px"><strong>3. RESPOND</strong> — "send it back as JSON"</p>
+          <p style="color:#8b949e;font-size:12px;margin-top:8px">The language is a <em>preference</em>. The concept is <em>universal</em>.</p>
+        </div>
+
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid #30363d">
+          <h4 style="color:#e2e8f0;font-size:14px;margin-bottom:8px">Prove it: call the real Python endpoint right now</h4>
+          <p style="color:#8b949e;font-size:12px;margin-bottom:8px">This button calls the <strong>Python/Flask</strong> version that's actually running this lab server. The response would be identical if it were PHP, Node, Java, or Perl — the browser doesn't care what language the server uses.</p>
+          <button class="btn btn-primary btn-sm" onclick="fetchProducts()">Call GET /api/products</button>
+          <div id="backendResult" style="margin-top:12px"></div>
+        </div>
+      `;
+    }
+  },
+
+  // ── STEP 8: APIs & REST ───────────────────────────────────
+  {
+    title: "APIs & REST",
+    icon: "8",
+    learn: `
+      <h2>Step 8 — APIs & REST</h2>
+      <p class="subtitle">How apps talk to each other</p>
+
+      <div class="concept-card">
+        <h3>What is an API?</h3>
+        <p><strong>API</strong> (Application Programming Interface) is a contract between two systems. It says: "If you send me <em>this</em> kind of request, I'll give you <em>that</em> kind of response."</p>
+        <p style="margin-top:8px">APIs are not just for web pages — they're how <em>all</em> modern software communicates. Your weather app, payment gateway, login with Google — all use APIs.</p>
+        <div class="analogy"><strong>Analogy:</strong> An API is like a restaurant menu. It lists what you can order (endpoints), what you need to tell the waiter (parameters), and what you'll get back (response). You don't need to know how the kitchen works — you just follow the menu.</div>
+      </div>
+
+      <div class="concept-card">
+        <h3>REST — The Most Common API Style</h3>
+        <p><strong>REST</strong> (Representational State Transfer) is a set of conventions for building APIs using standard HTTP methods. Most web APIs follow REST.</p>
+        <table>
+          <tr><th>Action</th><th>HTTP Method</th><th>URL Pattern</th><th>Example</th></tr>
+          <tr><td>List all</td><td><span class="method-badge method-GET">GET</span></td><td><code>/api/products</code></td><td>Get all products</td></tr>
+          <tr><td>Get one</td><td><span class="method-badge method-GET">GET</span></td><td><code>/api/products/3</code></td><td>Get product #3</td></tr>
+          <tr><td>Create</td><td><span class="method-badge method-POST">POST</span></td><td><code>/api/products</code></td><td>Add a new product</td></tr>
+          <tr><td>Update</td><td><span class="method-badge method-PUT">PUT</span></td><td><code>/api/products/3</code></td><td>Update product #3</td></tr>
+          <tr><td>Delete</td><td><span class="method-badge method-DELETE">DELETE</span></td><td><code>/api/products/3</code></td><td>Delete product #3</td></tr>
+        </table>
+      </div>
+
+      <div class="concept-card">
+        <h3>JSON — The Language of APIs</h3>
+        <p>REST APIs almost always send and receive data as <strong>JSON</strong> (JavaScript Object Notation):</p>
+<pre style="background:#0d1117;padding:12px;border-radius:6px;font-size:13px;margin-top:8px;color:#c9d1d9">{
+  "id": 1,
+  "name": "Wireless Mouse",
+  "price": 599,
+  "category": "electronics",
+  "stock": 34
+}</pre>
+        <div class="key-point"><strong>Key insight:</strong> JSON is just structured text — both humans and machines can read it. Almost every programming language can parse JSON. That's why it became the universal data format for APIs.</div>
+      </div>
+    `,
+    demo: function() {
+      return `
+        <p style="margin-bottom:12px;color:#8b949e;font-size:13px">This lab has a real REST API built in. Try these live calls:</p>
+
+        <div class="btn-group" style="margin-bottom:16px">
+          <button class="btn btn-success btn-sm" onclick="apiCall('GET','/api/products')">GET /api/products</button>
+          <button class="btn btn-success btn-sm" onclick="apiCall('GET','/api/products?category=electronics')">GET ?category=electronics</button>
+          <button class="btn btn-success btn-sm" onclick="apiCall('GET','/api/products/1')">GET /api/products/1</button>
+          <button class="btn btn-success btn-sm" onclick="apiCall('GET','/api/products/99')">GET /api/products/99 (404!)</button>
+        </div>
+
+        <div id="apiResult"></div>
+
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid #30363d">
+          <h4 style="font-size:14px;color:#e2e8f0;margin-bottom:8px">Build your own API call</h4>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="apiMethod" style="background:#0d1117;color:#c9d1d9;border:1px solid #30363d;padding:6px 10px;border-radius:6px;font-size:13px">
+              <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option>
+            </select>
+            <input id="apiUrl" type="text" value="/api/products" style="flex:1;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;padding:6px 10px;border-radius:6px;font-size:13px;font-family:monospace" />
+            <button class="btn btn-primary btn-sm" onclick="apiCall(document.getElementById('apiMethod').value, document.getElementById('apiUrl').value)">Send</button>
+          </div>
+        </div>
+      `;
+    }
+  },
+
+  // ── STEP 9: FULL PICTURE ──────────────────────────────────
+  {
+    title: "Full Picture — E-commerce",
+    icon: "9",
+    learn: `
+      <h2>Step 9 — How a Real Web App Works</h2>
+      <p class="subtitle">Putting it all together: an e-commerce site end-to-end</p>
+
+      <div class="concept-card">
+        <h3>The Full Architecture</h3>
+        <p>When you shop on a site like Amazon or Flipkart, here's what's actually happening:</p>
+        <div class="arch-diagram">
+          <div class="arch-row">
+            <div class="arch-box browser">Your Browser<br><small>HTML + CSS + JS</small></div>
+          </div>
+          <div style="text-align:center;color:#8b949e;font-size:18px">HTTP requests (REST API)</div>
+          <div class="arch-row">
+            <div class="arch-box server">Web Server<br><small>Python / Node.js</small></div>
+          </div>
+          <div style="text-align:center;color:#8b949e;font-size:18px">SQL queries</div>
+          <div class="arch-row">
+            <div class="arch-box db">Database<br><small>PostgreSQL / MongoDB</small></div>
+          </div>
+          <div style="text-align:center;color:#8b949e;font-size:10px;margin-top:8px">+ Payment APIs, Email services, CDN for images...</div>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>The "Add to Cart" Journey</h3>
+        <div class="flow-diagram">
+          <div class="flow-step">
+            <div class="flow-dot blue">1</div>
+            <div class="flow-content">
+              <h4 style="color:#93c5fd">You click "Add to Cart"</h4>
+              <p>JavaScript catches the click event and sends <code>POST /api/cart</code> with the product ID</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-dot green">2</div>
+            <div class="flow-content">
+              <h4 style="color:#86efac">Server receives it</h4>
+              <p>Backend validates the request, checks stock, adds item to your cart in the database</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-dot green">3</div>
+            <div class="flow-content">
+              <h4 style="color:#86efac">Server responds</h4>
+              <p>Sends back <code>201 Created</code> with updated cart: items, quantities, total price</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-dot blue">4</div>
+            <div class="flow-content">
+              <h4 style="color:#93c5fd">Browser updates</h4>
+              <p>JavaScript updates the cart icon count and shows a "Added!" notification — no page reload</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-dot purple">5</div>
+            <div class="flow-content">
+              <h4 style="color:#d8b4fe">Checkout</h4>
+              <p><code>POST /api/checkout</code> — server creates an order, calls payment API, sends confirmation email</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <h3>What You've Learned</h3>
+        <table>
+          <tr><th>Step</th><th>Concept</th><th>Role</th></tr>
+          <tr><td>1-2</td><td>HTTP & Methods</td><td>The communication protocol</td></tr>
+          <tr><td>3-5</td><td>HTML + CSS + JS</td><td>The building blocks of every web page</td></tr>
+          <tr><td>6</td><td>Frontend</td><td>Everything in the browser</td></tr>
+          <tr><td>7</td><td>Backend</td><td>Everything on the server</td></tr>
+          <tr><td>8</td><td>REST APIs</td><td>How frontend and backend communicate</td></tr>
+          <tr><td>9</td><td>Full Picture</td><td>All pieces working together</td></tr>
+        </table>
+        <div class="key-point"><strong>Every modern web app</strong> — from a small e-commerce store to Gmail — follows this same architecture. The frontend sends HTTP requests to a backend API, the backend processes them (often talking to a database), and sends back JSON. The frontend then updates what you see on screen. That's the whole story!</div>
+      </div>
+    `,
+    demo: function() {
+      return `
+        <p style="margin-bottom:12px;color:#8b949e;font-size:13px">Experience the full e-commerce flow with real API calls. Each button fires a real HTTP request to this server.</p>
+
+        <h4 style="font-size:14px;color:#e2e8f0;margin-bottom:8px">1. Browse Products</h4>
+        <button class="btn btn-success btn-sm" onclick="shopAction('browse')">GET /api/products</button>
+
+        <h4 style="font-size:14px;color:#e2e8f0;margin:16px 0 8px">2. Add to Cart</h4>
+        <div class="btn-group">
+          <button class="btn btn-primary btn-sm" onclick="shopAction('add',1)">Add Wireless Mouse</button>
+          <button class="btn btn-primary btn-sm" onclick="shopAction('add',2)">Add USB-C Hub</button>
+          <button class="btn btn-primary btn-sm" onclick="shopAction('add',6)">Add Desk Lamp</button>
+        </div>
+
+        <h4 style="font-size:14px;color:#e2e8f0;margin:16px 0 8px">3. View Cart</h4>
+        <button class="btn btn-outline btn-sm" onclick="shopAction('cart')">GET /api/cart</button>
+        <button class="btn btn-danger btn-sm" onclick="shopAction('clear')">Clear Cart</button>
+
+        <h4 style="font-size:14px;color:#e2e8f0;margin:16px 0 8px">4. Checkout</h4>
+        <button class="btn btn-success btn-sm" onclick="shopAction('checkout')">POST /api/checkout</button>
+
+        <div id="shopLog" style="margin-top:16px"></div>
+      `;
+    }
+  },
+
+  // ── STEP 10: ANIMATED FULL FLOW ─────────────────────────────
+  {
+    title: "The Complete Picture",
+    icon: "10",
+    learn: `
+      <h2>Step 10 — The Complete Picture</h2>
+      <p class="subtitle">Watch every layer work together in one animated flow</p>
+
+      <div class="concept-card">
+        <h3>Everything You've Learned</h3>
+        <p>In 9 steps you learned 9 concepts. They are not separate ideas — they are <strong>layers that stack on top of each other</strong> to make every web app work.</p>
+        <table>
+          <tr><th>Layer</th><th>What</th><th>Step</th></tr>
+          <tr><td style="color:#93c5fd">HTTP</td><td>The communication protocol</td><td>1 & 2</td></tr>
+          <tr><td style="color:#7dd3fc">HTML</td><td>Page structure</td><td>3</td></tr>
+          <tr><td style="color:#a78bfa">CSS</td><td>Visual styling</td><td>4</td></tr>
+          <tr><td style="color:#fbbf24">JavaScript</td><td>Interactivity & logic</td><td>5</td></tr>
+          <tr><td style="color:#60a5fa">Frontend</td><td>All of the above, in the browser</td><td>6</td></tr>
+          <tr><td style="color:#86efac">Backend</td><td>Server code + database</td><td>7</td></tr>
+          <tr><td style="color:#d8b4fe">REST API</td><td>The contract between front & back</td><td>8</td></tr>
+          <tr><td style="color:#fb923c">Full App</td><td>All layers working together</td><td>9</td></tr>
+        </table>
+      </div>
+
+      <div class="concept-card" style="border-color:#f59e0b">
+        <h3 style="color:#f59e0b">The One Sentence Summary</h3>
+        <p style="font-size:15px;line-height:1.8">A user clicks a button (<strong>JS</strong>) on a styled page (<strong>CSS</strong>) built from markup (<strong>HTML</strong>), which sends an <strong>HTTP</strong> request to a <strong>backend</strong> server via a <strong>REST API</strong>, the server queries a <strong>database</strong>, and sends back <strong>JSON</strong> — which the frontend renders without reloading the page.</p>
+        <div class="key-point"><strong>That's it.</strong> Every web app — from a local bakery's order page to Amazon — is this same loop, scaled up.</div>
+      </div>
+
+      <div class="concept-card">
+        <h3>What's Next?</h3>
+        <ul>
+          <li><strong>Learn a frontend framework</strong> — React, Vue, or Angular</li>
+          <li><strong>Learn a backend framework</strong> — Flask (Python), Express (Node), Django, Spring</li>
+          <li><strong>Learn a database</strong> — PostgreSQL, MongoDB</li>
+          <li><strong>Build something!</strong> — A to-do app, a blog, a simple e-commerce site</li>
+        </ul>
+        <p style="margin-top:8px;font-size:13px;color:#8b949e">You now have the mental model. Every tutorial you read from here will make sense because you understand <em>how all the pieces fit together</em>.</p>
+      </div>
+    `,
+    demo: function() {
+      return `
+        <p style="margin-bottom:16px;color:#8b949e;font-size:13px">Click <strong>Play</strong> to launch a fullscreen animated walkthrough of how "Add to Cart" flows through every layer you've learned.</p>
+        <button class="btn btn-primary" style="font-size:15px;padding:12px 28px" onclick="launchFullFlow()">Play: The Full Journey</button>
+        <p style="margin-top:12px;color:#8b949e;font-size:12px">This opens a fullscreen visualization. Press <strong>Esc</strong> or click <strong>Close</strong> to exit.</p>
+      `;
+    }
+  }
+];
+
+// ─────────────────────────────────────────────────────────────
+// STATE & NAVIGATION
+// ─────────────────────────────────────────────────────────────
+let currentStep = 0;
+let maxUnlocked = 0; // all unlocked from the start for this tutorial
+
+function renderNav() {
+  const navEl = document.getElementById('nav');
+  navEl.innerHTML = STEPS.map((s, i) => `
+    <div class="nav-item ${i === currentStep ? 'active' : ''} ${i <= maxUnlocked ? '' : ''}"
+         onclick="goTo(${i})" style="cursor:pointer">
+      <div class="num">${s.icon}</div>
+      <span>${s.title}</span>
+    </div>
+  `).join('');
+}
+
+function goTo(i) {
+  currentStep = i;
+  if (i > maxUnlocked) maxUnlocked = i;
+  renderNav();
+  renderStep();
+}
+
+function nav(dir) {
+  let next = currentStep + dir;
+  if (next < 0) next = 0;
+  if (next >= STEPS.length) next = STEPS.length - 1;
+  goTo(next);
+}
+
+function renderStep() {
+  const s = STEPS[currentStep];
+  document.getElementById('topTitle').textContent = `Step ${currentStep + 1} — ${s.title}`;
+  document.getElementById('learnPanel').innerHTML = s.learn;
+  document.getElementById('demoBody').innerHTML = s.demo();
+  document.getElementById('progressFill').style.width = ((currentStep + 1) / STEPS.length * 100) + '%';
+  document.getElementById('prevBtn').disabled = currentStep === 0;
+  document.getElementById('nextBtn').textContent = currentStep === STEPS.length - 1 ? 'Finish' : 'Next Step';
+  if (s.afterRender) setTimeout(s.afterRender, 50);
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP 1: HTTP ANIMATION
+// ─────────────────────────────────────────────────────────────
+function playHttpAnim() {
+  const btn = document.getElementById('httpPlayBtn');
+  const arrow1 = document.getElementById('httpArrow1');
+  const arrow2 = document.getElementById('httpArrow2');
+  const summary = document.getElementById('httpSummary');
+
+  // reset
+  arrow1.style.opacity = '0';
+  arrow2.style.opacity = '0';
+  summary.style.opacity = '0';
+  btn.textContent = 'Sending request...';
+  btn.disabled = true;
+
+  // Step 1: show request arrow
+  setTimeout(() => { arrow1.style.opacity = '1'; btn.textContent = 'Server processing...'; }, 600);
+  // Step 2: show response arrow
+  setTimeout(() => { arrow2.style.opacity = '1'; btn.textContent = 'Response received!'; }, 2000);
+  // Step 3: show summary
+  setTimeout(() => {
+    summary.style.opacity = '1';
+    btn.textContent = 'Replay';
+    btn.disabled = false;
+  }, 3000);
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP 2: ACCORDION + API HELPERS
+// ─────────────────────────────────────────────────────────────
+function toggleAccordion(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  // close all siblings first
+  header.closest('.demo-body').querySelectorAll('.accordion-header.open').forEach(h => {
+    h.classList.remove('open');
+    h.nextElementSibling.classList.remove('open');
+  });
+  if (!isOpen) {
+    header.classList.add('open');
+    body.classList.add('open');
+  }
+}
+
+async function fetchMenu2(url) {
+  const el = document.getElementById('getResult');
+  el.innerHTML = '<p class="loading" style="color:#60a5fa;font-size:12px">Sending request...</p>';
+  const res = await fetch(url);
+  const data = await res.json();
+  el.innerHTML = `
+    <div style="font-size:12px;margin-bottom:4px"><span class="method-badge method-GET">GET</span> <code>${url}</code> &rarr; <span style="color:#4ade80;font-weight:600">${res.status} OK</span></div>
+    <pre style="font-size:12px">${syntaxHighlight(data)}</pre>`;
+}
+
+async function placeOrder2(dish, qty, targetId) {
+  const el = document.getElementById(targetId || 'postResult');
+  el.innerHTML = '<p class="loading" style="color:#60a5fa;font-size:12px">Placing order...</p>';
+  const res = await fetch('/order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dish, qty })
+  });
+  const data = await res.json();
+  const color = res.ok ? '#4ade80' : '#f87171';
+  const label = res.ok ? res.status + ' Created' : res.status + ' Not Found';
+  el.innerHTML = `
+    <div style="font-size:12px;margin-bottom:4px"><span class="method-badge method-POST">POST</span> <code>/order</code> &rarr; <span style="color:${color};font-weight:600">${label}</span></div>
+    <p style="font-size:11px;color:#8b949e;margin-bottom:4px">REQUEST:</p>
+    <pre style="font-size:12px">${syntaxHighlight({dish, qty})}</pre>
+    <p style="font-size:11px;color:#8b949e;margin:6px 0 4px">RESPONSE:</p>
+    <pre style="font-size:12px">${syntaxHighlight(data)}</pre>`;
+}
+
+async function sendOrder2(method, url, body, targetId) {
+  const el = document.getElementById(targetId);
+  el.innerHTML = '<p class="loading" style="color:#60a5fa;font-size:12px">Sending...</p>';
+  const opts = { method };
+  if (body) { opts.headers = {'Content-Type':'application/json'}; opts.body = JSON.stringify(body); }
+  const res = await fetch(url, opts);
+  const data = await res.json();
+  const color = res.ok ? '#4ade80' : '#f87171';
+  el.innerHTML = `
+    <div style="font-size:12px;margin-bottom:4px"><span class="method-badge method-${method}">${method}</span> <code>${url}</code> &rarr; <span style="color:${color};font-weight:600">${res.status} OK</span></div>
+    ${body ? '<p style="font-size:11px;color:#8b949e;margin-bottom:4px">REQUEST:</p><pre style="font-size:12px">' + syntaxHighlight(body) + '</pre>' : ''}
+    <p style="font-size:11px;color:#8b949e;margin:6px 0 4px">RESPONSE:</p>
+    <pre style="font-size:12px">${syntaxHighlight(data)}</pre>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP 1 (legacy helpers kept for other steps)
+// ─────────────────────────────────────────────────────────────
+async function fetchMenu(url) {
+  const el = document.getElementById('menuResult');
+  el.innerHTML = '<p class="loading" style="color:#60a5fa">Asking the server for the menu...</p>';
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    el.innerHTML = `
+      <div style="margin-bottom:8px"><span class="method-badge method-GET">GET</span> <code>${url}</code> &rarr; <span style="color:#4ade80;font-weight:600">${res.status} OK</span></div>
+      <pre>${syntaxHighlight(data)}</pre>
+    `;
+  } catch (e) {
+    el.innerHTML = '<p style="color:#f87171">Error: ' + e.message + '</p>';
+  }
+}
+
+async function placeOrder(dish, qty) {
+  const el = document.getElementById('menuResult');
+  el.innerHTML = '<p class="loading" style="color:#60a5fa">Placing order...</p>';
+  try {
+    const res = await fetch('/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dish, qty })
+    });
+    const data = await res.json();
+    const color = res.ok ? '#4ade80' : '#f87171';
+    const status = res.ok ? res.status + ' Created' : res.status + ' Not Found';
+    el.innerHTML = `
+      <div style="margin-bottom:8px"><span class="method-badge method-POST">POST</span> <code>/order</code> &rarr; <span style="color:${color};font-weight:600">${status}</span></div>
+      <p style="font-size:12px;color:#8b949e;margin-bottom:6px">REQUEST body you sent:</p>
+      <pre>${syntaxHighlight({dish, qty})}</pre>
+      <p style="font-size:12px;color:#8b949e;margin:8px 0 6px">RESPONSE from the server:</p>
+      <pre>${syntaxHighlight(data)}</pre>
+    `;
+  } catch (e) {
+    el.innerHTML = '<p style="color:#f87171">Error: ' + e.message + '</p>';
+  }
+}
+
+// PUT/DELETE demos in step 2 — real /order endpoints
+async function sendOrder(method, url, body) {
+  const el = document.getElementById('menuResult');
+  el.innerHTML = '<p class="loading" style="color:#60a5fa">Sending request...</p>';
+  const opts = { method };
+  if (body) {
+    opts.headers = { 'Content-Type': 'application/json' };
+    opts.body = JSON.stringify(body);
+  }
+  try {
+    const res = await fetch(url, opts);
+    const data = await res.json();
+    const color = res.ok ? '#4ade80' : '#f87171';
+    el.innerHTML = `
+      <div style="margin-bottom:8px"><span class="method-badge method-${method}">${method}</span> <code>${url}</code> &rarr; <span style="color:${color};font-weight:600">${res.status} ${res.ok?'OK':'Error'}</span></div>
+      ${body ? '<p style="font-size:12px;color:#8b949e;margin-bottom:6px">REQUEST body you sent:</p><pre>' + syntaxHighlight(body) + '</pre>' : ''}
+      <p style="font-size:12px;color:#8b949e;margin:8px 0 6px">RESPONSE from the server:</p>
+      <pre>${syntaxHighlight(data)}</pre>
+    `;
+  } catch (e) {
+    el.innerHTML = '<p style="color:#f87171">Error: ' + e.message + '</p>';
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP 3: HTML PREVIEW
+// ─────────────────────────────────────────────────────────────
+function updatePreview() {
+  const html = document.getElementById('htmlEditor').value;
+  const frame = document.getElementById('previewFrame');
+  frame.srcdoc = `<!DOCTYPE html><html><head><style>body{font-family:Arial,sans-serif;padding:16px;}</style></head><body>${html}</body></html>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP 4: HTML + CSS PREVIEW
+// ─────────────────────────────────────────────────────────────
+function showEditorTab(id) {
+  document.getElementById('html4Editor').style.display = id === 'html4' ? '' : 'none';
+  document.getElementById('css4Editor').style.display = id === 'css4' ? '' : 'none';
+  const tabs = document.querySelectorAll('.editor-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function updatePreview4() {
+  const html = document.getElementById('html4Editor').value;
+  const css = document.getElementById('css4Editor').value;
+  const frame = document.getElementById('previewFrame4');
+  frame.srcdoc = `<!DOCTYPE html><html><head><style>${css}</style></head><body>${html}</body></html>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP 5: HTML + CSS + JS PREVIEW
+// ─────────────────────────────────────────────────────────────
+function showEditorTab5(id) {
+  document.getElementById('html5Editor').style.display = id === 'html5' ? '' : 'none';
+  document.getElementById('css5Editor').style.display = id === 'css5' ? '' : 'none';
+  document.getElementById('js5Editor').style.display = id === 'js5' ? '' : 'none';
+  const tabs = event.target.parentElement.querySelectorAll('.editor-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function updatePreview5() {
+  const html = document.getElementById('html5Editor').value;
+  const css = document.getElementById('css5Editor').value;
+  const js = document.getElementById('js5Editor').value;
+  const frame = document.getElementById('previewFrame5');
+  frame.srcdoc = `<!DOCTYPE html><html><head><style>${css}</style></head><body>${html}<script>${js}<\/script></body></html>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP 6: TRADITIONAL vs SPA DEMO
+// ─────────────────────────────────────────────────────────────
+const tradPages = {
+  home: '<strong>Home Page</strong> — Welcome to MyShop! Browse our amazing products.',
+  products: '<strong>Products</strong><br>1. Wireless Mouse - Rs. 599<br>2. USB-C Hub - Rs. 1,299<br>3. Laptop Stand - Rs. 1,899',
+  about: '<strong>About Us</strong> — We are a small online gadget store based in Bangalore.'
+};
+
+function tradNav(page) {
+  const el = document.getElementById('tradContent');
+  const url = document.getElementById('tradUrl');
+  const note = document.getElementById('tradNote');
+  // Simulate full page reload
+  el.style.opacity = '0';
+  note.textContent = 'Loading... (full page reload from server)';
+  setTimeout(() => {
+    url.textContent = 'myshop.com/' + page;
+    el.innerHTML = tradPages[page];
+    el.style.opacity = '1';
+    note.textContent = 'Entire page was re-downloaded from the server';
+  }, 800);
+}
+
+function spaNav(page) {
+  const el = document.getElementById('spaContent');
+  const url = document.getElementById('spaUrl');
+  const note = document.getElementById('spaNote');
+  // Instant swap
+  url.textContent = 'myshop.com/' + page;
+  el.innerHTML = tradPages[page];
+  note.textContent = 'Only the data changed — no page reload! JS swapped the content instantly.';
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP 7: BACKEND DEMO — language tabs
+// ─────────────────────────────────────────────────────────────
+function showLang(lang) {
+  const langs = ['perl','php','python','node','csharp','java'];
+  langs.forEach(l => {
+    const el = document.getElementById('lang-' + l);
+    if (el) el.style.display = l === lang ? '' : 'none';
+  });
+  const tabs = document.getElementById('langTabs');
+  if (tabs) {
+    tabs.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+}
+
+async function fetchProducts() {
+  const el = document.getElementById('backendResult');
+  el.innerHTML = '<p class="loading" style="color:#60a5fa">Sending GET /api/products...</p>';
+  const res = await fetch('/api/products');
+  const data = await res.json();
+  el.innerHTML = `
+    <div style="margin-bottom:4px"><span class="method-badge method-GET">GET</span> <code>/api/products</code> &rarr; <span style="color:#4ade80">${res.status} OK</span> &middot; ${data.count} products</div>
+    <pre>${syntaxHighlight(data)}</pre>
+  `;
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP 8: API EXPLORER
+// ─────────────────────────────────────────────────────────────
+async function apiCall(method, url) {
+  const el = document.getElementById('apiResult');
+  el.innerHTML = `<p class="loading" style="color:#60a5fa">Sending ${method} ${url}...</p>`;
+  try {
+    const res = await fetch(url, { method });
+    const data = await res.json();
+    const color = res.ok ? '#4ade80' : '#f87171';
+    el.innerHTML = `
+      <div style="margin-bottom:4px"><span class="method-badge method-${method}">${method}</span> <code>${url}</code> &rarr; <span style="color:${color};font-weight:600">${res.status} ${res.ok?'OK':'Not Found'}</span></div>
+      <pre>${syntaxHighlight(data)}</pre>
+    `;
+  } catch (e) {
+    el.innerHTML = `<p style="color:#f87171">Error: ${e.message}</p>`;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP 9: E-COMMERCE FLOW
+// ─────────────────────────────────────────────────────────────
+let shopLogEntries = [];
+async function shopAction(action, id) {
+  let method, url, body, label;
+  switch(action) {
+    case 'browse':
+      method='GET'; url='/api/products'; label='Browse products'; break;
+    case 'add':
+      method='POST'; url='/api/cart'; body={product_id:id,qty:1}; label='Add to cart'; break;
+    case 'cart':
+      method='GET'; url='/api/cart'; label='View cart'; break;
+    case 'clear':
+      method='DELETE'; url='/api/cart'; label='Clear cart'; break;
+    case 'checkout':
+      method='POST'; url='/api/checkout'; label='Checkout'; break;
+  }
+
+  const opts = { method };
+  if (body) { opts.headers = {'Content-Type':'application/json'}; opts.body = JSON.stringify(body); }
+
+  try {
+    const res = await fetch(url, opts);
+    const data = await res.json();
+    const color = res.ok ? '#4ade80' : '#f87171';
+    const entry = `
+      <div style="border:1px solid #30363d;border-radius:8px;padding:12px;margin-bottom:8px;background:#0d1117">
+        <div style="margin-bottom:4px;font-size:13px"><span class="method-badge method-${method}">${method}</span> <code>${url}</code> &rarr; <span style="color:${color};font-weight:600">${res.status}</span> <span style="color:#8b949e;font-size:11px">${label}</span></div>
+        <pre style="margin:0;font-size:12px">${syntaxHighlight(data)}</pre>
+      </div>`;
+    shopLogEntries.unshift(entry);
+    document.getElementById('shopLog').innerHTML = shopLogEntries.join('');
+  } catch (e) {
+    document.getElementById('shopLog').innerHTML = `<p style="color:#f87171">Error: ${e.message}</p>` + document.getElementById('shopLog').innerHTML;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// STEP 10: FULLSCREEN FLOW ANIMATION
+// ─────────────────────────────────────────────────────────────
+// Game flow step definitions
+// side: 'client' | 'server' | 'network-req' | 'network-res'
+// card: which gf-card id to light up
+// arrow: direction to show animated arrow ('right' = client→server, 'left' = server→client)
+const GF_STEPS = [
+  // ── PHASE 1: PAGE LOAD (reinforces GET basics) ──
+  {
+    card:'gcUrl', side:'client',
+    title:'You Type the URL',
+    text:'You type "myshop.com" in your browser and hit Enter. The browser needs to fetch the page — so it sends an HTTP GET request. This is the exact same GET you learned in Steps 1 & 2!',
+    code:'GET / HTTP/1.1\nHost: myshop.com\nAccept: text/html',
+    btn:'The GET request flies to the server...'
+  },
+  {
+    card:null, side:'network-req', arrow:'right',
+    title:'GET Request → Server',
+    text:'Your browser sends GET / over the internet to the server. It\'s asking: "Give me the HTML page for your homepage." Every website you\'ve ever visited started with this exact request.',
+    code:null,
+    btn:'The server responds with HTML, CSS, JS...'
+  },
+  {
+    card:'gsPage', side:'server',
+    title:'Server Sends HTML + CSS + JS',
+    text:'The server finds the page, bundles the HTML structure, CSS styles, and JavaScript files, and sends them back as an HTTP response. Status: 200 OK.',
+    code:'HTTP/1.1 200 OK\nContent-Type: text/html\n\n\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003clink rel="stylesheet" href="style.css"\u003e\n  \u003c/head\u003e\n  \u003cbody\u003e\n    \u003ch1\u003eMy Shop\u003c/h1\u003e\n    \u003cdiv class="product"\u003eWireless Mouse\u003c/div\u003e\n    \u003cbutton class="buy-btn"\u003eAdd to Cart\u003c/button\u003e\n    \u003cscript src="app.js"\u003e\u003c/script\u003e\n  \u003c/body\u003e\n\u003c/html\u003e',
+    btn:'The browser receives it and builds the page...'
+  },
+  {
+    card:'gc0', side:'client',
+    title:'Browser Renders the Page',
+    text:'Your browser reads the HTML (structure), applies the CSS (styling), and runs the JavaScript (behavior). The result: a beautiful product page with an "Add to Cart" button that\'s wired up and ready.',
+    code:null,
+    btn:'Now click that "Add to Cart" button...'
+  },
+  // ── PHASE 2: ADD TO CART ──
+  {
+    card:'gc1', side:'client',
+    title:'You Click "Add to Cart"',
+    text:'JavaScript catches the click. It knows you want product #1 (Wireless Mouse). It prepares an HTTP request — but hasn\'t sent it yet.',
+    code:'document.querySelector(\'.buy-btn\')\n  .addEventListener(\'click\', () => {\n    // JS prepares the data\n    const data = { product_id: 1, qty: 1 };\n  });',
+    btn:'Now JS sends the request across the internet...'
+  },
+  {
+    card:null, side:'network-req', arrow:'right',
+    title:'POST Request → Server',
+    text:'The browser sends a POST request (not GET this time — POST, because we\'re creating something). It contains the product ID and quantity as JSON.',
+    code:'POST /api/cart HTTP/1.1\nHost: myshop.com\nContent-Type: application/json\n\n{"product_id": 1, "qty": 1}',
+    btn:'The server receives it...'
+  },
+  {
+    card:'gs0', side:'server',
+    title:'REST API Receives the Request',
+    text:'The server framework matches "POST /api/cart" to a Python function. It doesn\'t matter if it\'s Flask, Express, Spring, or PHP — the concept is the same (Step 7!).',
+    code:'@app.route("/api/cart", methods=["POST"])\ndef add_to_cart():\n    data = request.get_json()\n    product_id = data["product_id"]\n    qty = data["qty"]',
+    btn:'Now the server does the real work...'
+  },
+  {
+    card:'gs1', side:'server',
+    title:'Business Logic Runs',
+    text:'Does this product exist? Is it in stock? What\'s the price? Should a discount apply? This logic MUST live on the server — if it were in the browser, users could tamper with it.',
+    code:'product = find_product(product_id)\n\nif product.stock < qty:\n    return error("Out of stock")\n\nprice = product.price * qty   # Rs. 599',
+    btn:'Save it to the database...'
+  },
+  {
+    card:'gs2', side:'server',
+    title:'Database Write',
+    text:'The server saves your cart in a database so it persists — even if you close the browser and come back tomorrow. In this lab we use a Python list, but real apps use PostgreSQL or MongoDB.',
+    code:'INSERT INTO cart_items\n  (user_id, product_id, qty, price)\nVALUES\n  (42, 1, 1, 599);\n\n-- Cart saved! Now send the response...',
+    btn:'Server sends the response back...'
+  },
+  {
+    card:null, side:'network-res', arrow:'left',
+    title:'HTTP Response ← Server',
+    text:'The server responds with status 201 Created and a JSON body containing your updated cart. This is the return trip — same HTTP protocol, opposite direction.',
+    code:'HTTP/1.1 201 Created\nContent-Type: application/json\n\n{\n  "message": "Added Wireless Mouse",\n  "cart": [{"name":"Wireless Mouse","qty":1,"price":599}],\n  "total": 599\n}',
+    btn:'The browser receives the JSON...'
+  },
+  // ── PHASE 3: JS MODIFIES THE HTML ──
+  {
+    card:'gc2', side:'client',
+    title:'JavaScript Reads the Response',
+    text:'JavaScript parses the JSON from the server. It now has real data: the cart has 1 item, and the total is Rs. 599. But the page still shows the old values. JS needs to update the HTML.',
+    code:'const response = await fetch(\'/api/cart\', opts);\nconst data = await response.json();\n\n// data = {\n//   cart: [{name:"Wireless Mouse", qty:1, price:599}],\n//   total: 599\n// }',
+    btn:'Now watch JS modify the HTML...'
+  },
+  {
+    card:'gc3', side:'client',
+    title:'JavaScript Modifies the HTML (DOM)',
+    text:'This is the magic: JS reaches into the HTML and changes it directly. It finds elements by their ID or class, and overwrites their text. The browser instantly re-renders — no page reload needed. This is what makes modern web apps feel fast and responsive.',
+    code:'// JS finds HTML elements and changes them:\n\ndocument.getElementById(\'count\').textContent = \'1 item\';\n// the element now reads: 1 item (was: 0 items)\n\ndocument.getElementById(\'total\').textContent = \'Rs. 599\';\n// the element now reads: Rs. 599 (was: Rs. 0)\n\nbtn.textContent = \'Added!\';\nbtn.style.background = \'green\';\n// button now shows green "Added!" (was: blue "Add to Cart")',
+    btn:null // last step
+  }
+];
+
+let flowOverlayEl = null;
+let gfCurrent = -1;
+
+function launchFullFlow() {
+  if (!flowOverlayEl) {
+    flowOverlayEl = document.createElement('div');
+    flowOverlayEl.className = 'flow-overlay';
+    flowOverlayEl.innerHTML = buildGameFlowHTML();
+    document.body.appendChild(flowOverlayEl);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFullFlow(); });
+  }
+  gfResetAll();
+  setTimeout(() => flowOverlayEl.classList.add('visible'), 20);
+}
+
+function closeFullFlow() {
+  if (flowOverlayEl) flowOverlayEl.classList.remove('visible');
+}
+
+function buildGameFlowHTML() {
+  return `
+    <!-- TOP BAR -->
+    <div class="gf-topbar">
+      <h2>The Full Journey: "Add to Cart"</h2>
+      <div class="gf-step-pills" id="gfPills">
+        ${GF_STEPS.map((_,i) => '<div class="gf-pill" id="gfPill'+i+'"></div>').join('')}
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="closeFullFlow()">Close &times;</button>
+    </div>
+
+    <!-- STAGE: two halves + arrow track -->
+    <div class="gf-stage">
+
+      <!-- LEFT: BROWSER -->
+      <div class="gf-side gf-client">
+        <div class="gf-header">
+          <div class="gf-header-icon">&#128187;</div>
+          <div>
+            <div class="gf-header-title" style="color:#93c5fd">Your Browser</div>
+            <div class="gf-header-sub">Client side — what you see and interact with</div>
+          </div>
+        </div>
+
+        <!-- URL bar card (step 0) -->
+        <div class="gf-card" id="gcUrl" style="border-color:#64748b;background:#0f1d32">
+          <div class="gf-card-title" style="color:#94a3b8">&#127760; Address Bar</div>
+          <div class="gf-card-body">
+            <div style="background:#1e293b;border-radius:6px;padding:6px 10px;font-family:monospace;font-size:12px;color:#e2e8f0;display:flex;align-items:center;gap:6px">
+              <span style="color:#8b949e;font-size:10px">&#128274;</span>
+              <span id="gcUrlText">myshop.com</span>
+            </div>
+            <div style="font-size:11px;color:#8b949e;margin-top:4px">Browser sends <span class="method-badge method-GET" style="font-size:10px">GET</span> / to fetch the page</div>
+          </div>
+        </div>
+
+        <!-- Page rendered card (step 3) -->
+        <div class="gf-card" id="gc0" style="border-color:#3b82f6;background:#0f1d32">
+          <div class="gf-card-title" style="color:#93c5fd">&#128196; Page Rendered</div>
+          <div class="gf-card-body">
+            <div style="background:#1e293b;border-radius:8px;padding:10px;margin-top:6px">
+              <div style="font-size:13px;font-weight:600;color:#e2e8f0">Wireless Mouse — Rs. 599</div>
+              <div style="margin-top:6px"><span style="background:#2563eb;color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:600" id="gcBtn">Add to Cart</span></div>
+            </div>
+            <div style="margin-top:8px;display:flex;gap:12px;font-size:11px;color:#8b949e">
+              <span>HTML = structure</span><span>CSS = style</span><span>JS = behavior</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- JS event card (step 4) -->
+        <div class="gf-card" id="gc1" style="border-color:#f59e0b;background:#1a1207">
+          <div class="gf-card-title" style="color:#fbbf24">&#9889; JavaScript Event</div>
+          <div class="gf-card-body">Click caught! Preparing data: <code style="color:#7dd3fc">{product_id: 1, qty: 1}</code></div>
+        </div>
+
+        <div style="flex:1"></div>
+
+        <!-- JS reads response (step 10) -->
+        <div class="gf-card" id="gc2" style="border-color:#7dd3fc;background:#0c1929">
+          <div class="gf-card-title" style="color:#7dd3fc">&#128230; Response Received</div>
+          <div class="gf-card-body">
+            <div style="font-size:12px;color:#8b949e">JS has the JSON data. Cart: 1 item, total: Rs. 599</div>
+          </div>
+        </div>
+
+        <!-- JS modifies DOM (step 11) -->
+        <div class="gf-card" id="gc3" style="border-color:#22c55e;background:#071a0e">
+          <div class="gf-card-title" style="color:#86efac">&#9998; JS Modifies the HTML</div>
+          <div class="gf-card-body">
+            <div style="display:flex;gap:6px;flex-direction:column;margin-top:4px;font-size:12px;font-family:monospace">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="color:#f87171;text-decoration:line-through" id="gcDomOld1">Cart: 0 items</span>
+                <span style="color:#8b949e">→</span>
+                <span style="color:#4ade80;font-weight:600" id="gcDomNew1">Cart: 0 items</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="color:#f87171;text-decoration:line-through" id="gcDomOld2">Total: Rs. 0</span>
+                <span style="color:#8b949e">→</span>
+                <span style="color:#4ade80;font-weight:600" id="gcDomNew2">Total: Rs. 0</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="color:#f87171;text-decoration:line-through" id="gcDomOld3">Add to Cart</span>
+                <span style="color:#8b949e">→</span>
+                <span style="color:#4ade80;font-weight:600" id="gcDomNew3">Add to Cart</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARROW TRACK (sits on top, in the center) -->
+      <div class="gf-arrow-track">
+        <!-- GET request: Browser → Server (left to right) -->
+        <div class="gf-arrow" id="gfArrowGet" style="top:12%">
+          <div class="gf-arrow-label">Browser &rarr; Server</div>
+          <div class="gf-arrow-icon" style="color:#4ade80">&rarr;</div>
+          <div class="gf-arrow-badge" style="background:#14532d;color:#86efac">GET /</div>
+        </div>
+        <!-- GET response: Server → Browser (right to left) -->
+        <div class="gf-arrow" id="gfArrowHtml" style="top:22%">
+          <div class="gf-arrow-label">Server &rarr; Browser</div>
+          <div class="gf-arrow-icon" style="color:#60a5fa">&larr;</div>
+          <div class="gf-arrow-badge" style="background:#1e3a5f;color:#93c5fd">200 OK + HTML</div>
+        </div>
+        <!-- POST request: Browser → Server (left to right) -->
+        <div class="gf-arrow" id="gfArrowReq" style="top:50%">
+          <div class="gf-arrow-label">Browser &rarr; Server</div>
+          <div class="gf-arrow-icon" style="color:#f87171">&rarr;</div>
+          <div class="gf-arrow-badge" style="background:#7f1d1d;color:#fca5a5">POST /api/cart</div>
+        </div>
+        <!-- POST response: Server → Browser (right to left) -->
+        <div class="gf-arrow" id="gfArrowRes" style="top:68%">
+          <div class="gf-arrow-label">Server &rarr; Browser</div>
+          <div class="gf-arrow-icon" style="color:#4ade80">&larr;</div>
+          <div class="gf-arrow-badge" style="background:#14532d;color:#86efac">201 Created + JSON</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: SERVER -->
+      <div class="gf-side gf-server">
+        <div class="gf-header">
+          <div class="gf-header-icon">&#128421;</div>
+          <div>
+            <div class="gf-header-title" style="color:#86efac">The Server</div>
+            <div class="gf-header-sub">Backend — a computer in a data center</div>
+          </div>
+        </div>
+
+        <!-- Serves the page (step 2) -->
+        <div class="gf-card" id="gsPage" style="border-color:#60a5fa;background:#0c1929">
+          <div class="gf-card-title" style="color:#93c5fd">&#128230; Serves the Page</div>
+          <div class="gf-card-body">
+            <div style="font-size:12px;color:#8b949e">Finds index.html, bundles CSS &amp; JS, sends back:</div>
+            <div style="font-size:11px;color:#86efac;margin-top:4px;font-family:monospace">200 OK &rarr; HTML + CSS + JS</div>
+          </div>
+        </div>
+
+        <div style="border-top:1px dashed #22c55e44;margin:8px 0;padding-top:4px">
+          <div style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px">Later — handling the cart API:</div>
+        </div>
+
+        <div class="gf-card" id="gs0" style="border-color:#a855f7;background:#1a0a2e">
+          <div class="gf-card-title" style="color:#d8b4fe">&#128279; REST API</div>
+          <div class="gf-card-body">Route matched: <code style="color:#7dd3fc">POST /api/cart</code> &rarr; <code style="color:#7dd3fc">add_to_cart()</code></div>
+        </div>
+
+        <div class="gf-card" id="gs1" style="border-color:#22c55e;background:#071a0e">
+          <div class="gf-card-title" style="color:#86efac">&#9881; Business Logic</div>
+          <div class="gf-card-body">
+            <div id="gsChecks" style="font-size:12px;line-height:1.8">
+              <div style="color:#8b949e">&#9744; Find product #1</div>
+              <div style="color:#8b949e">&#9744; Check stock (34 available)</div>
+              <div style="color:#8b949e">&#9744; Calculate price: Rs. 599</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gf-card" id="gs2" style="border-color:#f97316;background:#1a0e04">
+          <div class="gf-card-title" style="color:#fed7aa">&#128451; Database</div>
+          <div class="gf-card-body">
+            <code style="color:#7dd3fc;font-size:11px">INSERT INTO cart_items ...</code>
+            <div style="margin-top:4px;font-size:11px;color:#8b949e" id="gsDbStatus">Waiting...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: narration + next button -->
+      <div class="gf-right-panel">
+        <div class="gf-narration">
+          <div class="gf-narr-step" id="gfNStep"></div>
+          <div class="gf-narr-title" id="gfNTitle">Ready?</div>
+          <div class="gf-narr-text" id="gfNText">You're about to watch a single "Add to Cart" click travel through every layer of a web application. Click <strong>Next Step</strong> to begin.</div>
+          <div class="gf-card-code" id="gfNCode" style="display:none;margin-top:10px"></div>
+        </div>
+        <div class="gf-action">
+          <button class="gf-next-btn" id="gfNextBtn" onclick="gfAdvance()" style="width:100%">Next Step &#10132;</button>
+        </div>
+      </div>
+
+    </div>`;
+}
+
+function gfResetAll() {
+  gfCurrent = -1;
+  // Reset all cards
+  document.querySelectorAll('.gf-card').forEach(c => { c.classList.remove('visible','glow'); });
+  // Reset all arrows
+  ['gfArrowGet','gfArrowHtml','gfArrowReq','gfArrowRes'].forEach(id => {
+    document.getElementById(id)?.classList.remove('fly');
+  });
+  // Reset pills
+  GF_STEPS.forEach((_,i) => {
+    const p = document.getElementById('gfPill'+i);
+    if (p) { p.classList.remove('done','active'); }
+  });
+  // Reset dynamic content
+  const btn = document.getElementById('gcBtn');
+  if (btn) { btn.textContent = 'Add to Cart'; btn.style.background = '#2563eb'; }
+  const checks = document.getElementById('gsChecks');
+  if (checks) checks.innerHTML = '<div style="color:#8b949e">&#9744; Find product #1</div><div style="color:#8b949e">&#9744; Check stock (34 available)</div><div style="color:#8b949e">&#9744; Calculate price: Rs. 599</div>';
+  const db = document.getElementById('gsDbStatus');
+  if (db) { db.textContent = 'Waiting...'; db.style.color = '#8b949e'; }
+  // Reset DOM diff display
+  ['gcDomNew1','gcDomNew2','gcDomNew3'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.color = '#4ade80';
+  });
+  const dn1 = document.getElementById('gcDomNew1'); if (dn1) dn1.textContent = 'Cart: 0 items';
+  const dn2 = document.getElementById('gcDomNew2'); if (dn2) dn2.textContent = 'Total: Rs. 0';
+  const dn3 = document.getElementById('gcDomNew3'); if (dn3) dn3.textContent = 'Add to Cart';
+  // Reset narration
+  document.getElementById('gfNStep').textContent = '';
+  document.getElementById('gfNTitle').textContent = 'Ready?';
+  document.getElementById('gfNText').innerHTML = 'You\'re about to watch a full page load and then an "Add to Cart" click travel through every layer. Click <strong>Next Step</strong> to begin.';
+  document.getElementById('gfNCode').style.display = 'none';
+  const nb = document.getElementById('gfNextBtn');
+  nb.textContent = 'Next Step \u27A2';
+  nb.disabled = false;
+  nb.className = 'gf-next-btn';
+}
+
+function gfAdvance() {
+  // Mark previous pill as done
+  if (gfCurrent >= 0) {
+    const pp = document.getElementById('gfPill'+gfCurrent);
+    if (pp) { pp.classList.remove('active'); pp.classList.add('done'); }
+    // Remove glow from previous card
+    const prev = GF_STEPS[gfCurrent];
+    if (prev.card) document.getElementById(prev.card)?.classList.remove('glow');
+  }
+
+  gfCurrent++;
+
+  // End?
+  if (gfCurrent >= GF_STEPS.length) {
+    document.getElementById('gfNStep').textContent = 'COMPLETE';
+    document.getElementById('gfNTitle').textContent = 'The full round-trip is done!';
+    document.getElementById('gfNText').innerHTML = 'From click to database and back — <strong>that\'s how every web app works</strong>. The browser never reloaded. All 10 steps you learned made this possible.';
+    document.getElementById('gfNCode').style.display = 'none';
+    const nb = document.getElementById('gfNextBtn');
+    nb.textContent = 'Replay';
+    nb.className = 'gf-next-btn green';
+    nb.onclick = function() { gfResetAll(); nb.onclick = gfAdvance; };
+    return;
+  }
+
+  const s = GF_STEPS[gfCurrent];
+
+  // Pill
+  const pill = document.getElementById('gfPill'+gfCurrent);
+  if (pill) pill.classList.add('active');
+
+  // Show & glow card
+  if (s.card) {
+    const card = document.getElementById(s.card);
+    card.classList.add('visible','glow');
+  }
+
+  // Arrows — based on which step we're on
+  // Step 1: GET request arrow flies right
+  if (gfCurrent === 1) document.getElementById('gfArrowGet')?.classList.add('fly');
+  // Step 2: HTML response arrow flies left
+  if (gfCurrent === 2) document.getElementById('gfArrowHtml')?.classList.add('fly');
+  // Step 5: POST request arrow flies right
+  if (gfCurrent === 5) document.getElementById('gfArrowReq')?.classList.add('fly');
+  // Step 9: JSON response arrow flies left
+  if (gfCurrent === 9) document.getElementById('gfArrowRes')?.classList.add('fly');
+
+  // Side effects: make things feel alive
+  if (gfCurrent === 4) {
+    // Button changes to "clicked"
+    const btn = document.getElementById('gcBtn');
+    if (btn) { btn.textContent = 'Clicked!'; btn.style.background = '#f59e0b'; }
+  }
+  if (gfCurrent === 7) {
+    // Animate server checks
+    const checks = document.getElementById('gsChecks');
+    if (checks) checks.innerHTML = '<div style="color:#4ade80">&#9745; Found: Wireless Mouse</div><div style="color:#4ade80">&#9745; In stock (34 available)</div><div style="color:#4ade80">&#9745; Price: Rs. 599 x 1 = Rs. 599</div>';
+  }
+  if (gfCurrent === 8) {
+    const db = document.getElementById('gsDbStatus');
+    if (db) { db.textContent = 'Saved!'; db.style.color = '#4ade80'; }
+  }
+  if (gfCurrent === 11) {
+    // DOM modification — show the before/after
+    const dn1 = document.getElementById('gcDomNew1'); if (dn1) dn1.textContent = '1 item';
+    const dn2 = document.getElementById('gcDomNew2'); if (dn2) dn2.textContent = 'Rs. 599';
+    const dn3 = document.getElementById('gcDomNew3'); if (dn3) dn3.textContent = 'Added!';
+    // Also update the rendered button above
+    const btn = document.getElementById('gcBtn');
+    if (btn) { btn.textContent = 'Added!'; btn.style.background = '#16a34a'; }
+  }
+
+  // Narration
+  const zoneLabels = {client:'BROWSER', server:'SERVER', 'network-req':'NETWORK', 'network-res':'NETWORK'};
+  document.getElementById('gfNStep').textContent = 'Step ' + (gfCurrent+1) + ' of ' + GF_STEPS.length + '  ·  ' + zoneLabels[s.side];
+  document.getElementById('gfNTitle').textContent = s.title;
+  document.getElementById('gfNText').textContent = s.text;
+  const codeEl = document.getElementById('gfNCode');
+  if (s.code) { codeEl.textContent = s.code; codeEl.style.display = ''; }
+  else { codeEl.style.display = 'none'; }
+
+  // Next button text
+  const nb = document.getElementById('gfNextBtn');
+  if (gfCurrent < GF_STEPS.length - 1) {
+    nb.textContent = (GF_STEPS[gfCurrent].btn || 'Next Step') + ' \u27A2';
+  } else {
+    nb.textContent = 'Finish';
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// JSON SYNTAX HIGHLIGHTER
+// ─────────────────────────────────────────────────────────────
+function syntaxHighlight(obj) {
+  let json = JSON.stringify(obj, null, 2);
+  json = json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return json.replace(/"([^"]+)":/g, '<span style="color:#ff7b72">"$1"</span>:')
+             .replace(/: "([^"]*)"/g, ': <span style="color:#a5d6ff">"$1"</span>')
+             .replace(/: (\d+)/g, ': <span style="color:#79c0ff">$1</span>')
+             .replace(/: (true|false|null)/g, ': <span style="color:#f59e0b">$1</span>');
+}
+
+// ─────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────
+maxUnlocked = STEPS.length - 1; // all steps unlocked
+renderNav();
+renderStep();
+</script>
+</body>
+</html>
