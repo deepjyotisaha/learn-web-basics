@@ -14,13 +14,7 @@ An interactive, browser-based learning lab that teaches web foundations through 
 
 ---
 
-<!-- 🖼️ SCREENSHOT PLACEHOLDER
-     Take a screenshot of the lab running in your browser and save it as screenshot.png
-     in the root of this repo, then uncomment the line below:
--->
-<!-- ![Web Fundamentals Lab Screenshot](screenshot.png) -->
-
-> **📸 To add the screenshot:** Take a screenshot of the app running at `http://localhost:5000`, save it as `screenshot.png` in the repo root, then uncomment the image line above in this README.
+![Web Fundamentals Lab](demo.png)
 
 ---
 
