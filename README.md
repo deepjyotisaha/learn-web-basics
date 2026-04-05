@@ -51,8 +51,8 @@ By the end of this lab, you will understand:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/<your-org>/WebBasics.git
-cd WebBasics
+git clone https://github.com/deepjyotisaha/learn-web-basics.git
+cd learn-web-basics
 
 # 2. (Optional) Create a virtual environment
 python -m venv venv
